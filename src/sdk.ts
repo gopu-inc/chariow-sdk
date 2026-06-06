@@ -1,21 +1,11 @@
-import { ChariowClient }
-from "./client"
-
-import { ProductsAPI }
-from "./modules/products"
+import { ChariowClient } from "./client.js";
+import { ProductsAPI } from "./modules/products.js";
 
 export class Chariow {
-
-  products: ProductsAPI
+  products: ProductsAPI;
 
   constructor(apiKey: string) {
-
-    const client =
-      new ChariowClient({
-        apiKey
-      })
-
-    this.products =
-      new ProductsAPI(client)
+    const client = new ChariowClient({ apiKey });
+    this.products = new ProductsAPI(client);
   }
 }

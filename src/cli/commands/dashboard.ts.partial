@@ -1,0 +1,92 @@
+// Ajouter ces fonctions dans dashboard.ts
+
+import { ChariowWebSocket } from '../services/websocket.js';
+import { SearchService } from '../services/search.js';
+
+let wsClient: ChariowWebSocket | null = null;
+let searchService: SearchService | null = null;
+let realTimeMode = false;
+
+// Fonction pour initialiser WebSocket
+async function initWebSocket(apiKey: string) {
+  if (!wsClient && apiKey) {
+    wsClient = new ChariowWebSocket(apiKey);
+    searchService = new SearchService(apiKey);
+    
+    wsClient.on('connected', () => {
+      console.log(chalk.green('✓ Real-time mode activated'));
+    });
+    
+    wsClient.on('new_sale', (sale) => {
+      // Afficher notification de vente en temps réel
+      console.log(chalk.green(`\n🎉 NEW SALE! ${sale.product_name} - ${sale.amount}`));
+      // Rafraîchir les données
+      loadData();
+    });
+    
+    wsClient.on('product_updated', (product) => {
+      console.log(chalk.yellow(`\n📦 Product updated: ${product.name}`));
+      loadData();
+    });
+    
+    await wsClient.connect();
+    await wsClient.subscribeToStore();
+  }
+}
+
+// Fonction de recherche en temps réel
+async function realTimeSearch() {
+  if (!searchService) {
+    const config = getConfig();
+    if (config?.apiKey) {
+      await initWebSocket(config.apiKey);
+    } else {
+      console.log(chalk.red('API key required for real-time search'));
+      return;
+    }
+  }
+  
+  process.stdin.setRawMode(false);
+  console.clear();
+  
+  console.log(chalk.cyan.bold('\n🔍 REAL-TIME SEARCH MODE\n'));
+  console.log(chalk.dim('Type your search query (or "exit" to return):\n'));
+  
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  
+  const askQuestion = () => {
+    rl.question(chalk.green('🔎 Search: '), async (query) => {
+      if (query === 'exit' || query === 'q') {
+        rl.close();
+        process.stdin.setRawMode(true);
+        await renderDashboard();
+        return;
+      }
+      
+      if (query.trim()) {
+        console.log(chalk.cyan(`\nSearching for "${query}"...\n`));
+        
+        // Recherche avec progression
+        const results = await searchService!.search({
+          term: query,
+          limit: 50,
+          sortBy: 'relevance'
+        });
+        
+        if (results.length > 0) {
+          console.log(chalk.green(`\n✓ Found ${results.length} results\n`));
+        }
+      }
+      
+      askQuestion();
+    });
+  };
+  
+  askQuestion();
+}
+
+// Modifier interactiveMode pour inclure WebSocket
+// Remplacer la fonction existante par cette version améliorée

@@ -1,4 +1,4 @@
-import { setConfig, getConfig } from '../utils/config';
+import { setConfig, getConfig } from '../utils/config.js';
 import chalk from 'chalk';
 
 export async function configCommand(options: any) {
