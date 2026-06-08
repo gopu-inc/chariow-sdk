@@ -3,14 +3,15 @@
 
 <div align="center">
 
-![Chariow Banner](https://chariow.com/banner.png)
+![Chariow Banner](https://chariow.com)
 
 **Official Node.js & TypeScript SDK for the Chariow API**
 
 Build powerful e-commerce applications with Chariow using a modern, fully typed SDK and a powerful CLI tool.
 
-[![npm version](https://badge.fury.io/js/chariow-sdk.svg)](https://badge.fury.io/js/chariow-sdk)
-[![TypeScript](https://badge.fury.io/ps/typescript.svg)](https://github.com/microsoft/TypeScript)
+
+[![npm version](https://badge.fury.io/js/chariow-sdk.svg?icon=si%3Anpm)](https://badge.fury.io/js/chariow-sdk)
+[![npm version](https://badge.fury.io/js/typescript.svg)](https://badge.fury.io/js/typescript)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
