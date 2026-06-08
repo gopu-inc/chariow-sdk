@@ -3,7 +3,7 @@
 
 <div align="center">
 
-![Chariow Banner](https://chariow.com)
+![Chariow Banner](.github/33c8d49bc3a72ca18587b84083d3bb9f.jpg)
 
 **Official Node.js & TypeScript SDK for the Chariow API**
 
