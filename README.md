@@ -544,7 +544,7 @@ Development Guidelines
 
 📝 Changelog
 
-v0.1.0 (Latest)
+v2.1.3 (Latest)
 
 · ✅ Initial SDK release
 · ✅ Products API (list, get, create, update, delete, search)
@@ -569,7 +569,7 @@ Coming Soon
 
 📄 License
 
-MIT © Chariow
+MIT © 2026 Chariow - gopu inc
 
 ---
 
@@ -586,16 +586,16 @@ MIT © Chariow
 
 💬 Support
 
-· Documentation: docs.chariow.com
-· Discord: Join our Discord
-· Twitter: @ChariowHQ
-· Email: support@chariow.com
+· Documentation: soon comming
+· Discord: soon comming
+· Twitter: soon comming
+· Email: ceoseshell@gmail.com
 
 ---
 
 <div align="center">
 
-Built with ❤️ by the CMO Team
+Built with ❤️ by the CMO Team - gopu inc
 
 ⭐ Star us on GitHub if you find this useful!
 
