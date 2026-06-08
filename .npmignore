@@ -1,12 +1,75 @@
+# Source files
 src/
 tsconfig.json
+tsconfig.*.json
 rollup.config.js
-node_modules/
+
+# Development files
+test/
+tests/
+__tests__/
+*.test.ts
+*.spec.ts
+*.test.js
+*.spec.js
+
+# Documentation
+docs/
+examples/
+*.md
+!README.md
+!LICENSE
+
+# CI/CD
+.github/
+.gitlab/
+.git/
+.husky/
+.gitattributes
+
+# Config files
+.eslintrc*
+.prettierrc*
+.editorconfig
+.babelrc*
+.nycrc
+jest.config.*
+
+# Logs
+logs/
 *.log
-.DS_Store
-*.tgz
+
+# Coverage
 coverage/
 .nyc_output/
+
+# Temp files
+.tmp/
+.temp/
+*.tmp
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local environment
+.env*
+.env.local
+
+# IDE
 .vscode/
 .idea/
-.charc
+
+# Build cache
+.cache/
+.parcel-cache/
+
+# Package lock (let users generate their own)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Chariow local config
+.chariow/
