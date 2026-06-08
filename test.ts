@@ -1,6 +1,6 @@
 import "dotenv/config"
 
-import { Chariow } from "./src"
+import { Chariow } from "chariow-sdk"
 
 async function main() {
 

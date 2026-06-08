@@ -1,4 +1,4 @@
-// utils/config.ts - Version améliorée
+// utils/config.ts - Version corrigée
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -18,7 +18,6 @@ export interface CliConfig {
 
 // Configuration validation
 export function validateApiKey(key: string): boolean {
-  // Vérification basique du format API key
   return key.length >= 32 && /^[a-f0-9]{32,}$/i.test(key);
 }
 
@@ -28,7 +27,6 @@ export function getConfig(): CliConfig | null {
       const content = fs.readFileSync(CONFIG_FILE, 'utf-8');
       const config = JSON.parse(content);
       
-      // Migration des anciennes configs
       if (!config.defaultPerPage) config.defaultPerPage = 20;
       if (!config.theme) config.theme = 'dark';
       
@@ -49,7 +47,6 @@ export function setConfig(config: Partial<CliConfig>) {
     const existing = getConfig() || {};
     const merged = { ...existing, ...config };
     
-    // Validation
     if (merged.apiKey && !validateApiKey(merged.apiKey)) {
       throw new Error('Invalid API key format');
     }
@@ -62,8 +59,24 @@ export function setConfig(config: Partial<CliConfig>) {
   }
 }
 
-// Configuration encryption pour stockage sécurisé
+// Version corrigée utilisant createCipheriv au lieu de createCipher
 export function encryptApiKey(key: string): string {
-  const cipher = crypto.createCipher('aes-256-cbc', 'chariow-secret-key');
-  return cipher.update(key, 'utf8', 'hex') + cipher.final('hex');
+  // Utiliser une clé dérivée fixe (à remplacer par une vraie clé en prod)
+  const algorithm = 'aes-256-cbc';
+  const keyBuffer = crypto.scryptSync('chariow-secret-key', 'salt', 32);
+  const iv = crypto.randomBytes(16);
+  
+  const cipher = crypto.createCipheriv(algorithm, keyBuffer, iv);
+  const encrypted = cipher.update(key, 'utf8', 'hex') + cipher.final('hex');
+  
+  return iv.toString('hex') + ':' + encrypted;
+}
+
+export function decryptApiKey(encryptedData: string): string {
+  const [ivHex, encrypted] = encryptedData.split(':');
+  const iv = Buffer.from(ivHex, 'hex');
+  const keyBuffer = crypto.scryptSync('chariow-secret-key', 'salt', 32);
+  
+  const decipher = crypto.createDecipheriv('aes-256-cbc', keyBuffer, iv);
+  return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
 }

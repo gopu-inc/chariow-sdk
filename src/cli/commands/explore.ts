@@ -30,6 +30,10 @@ export async function exploreCommand(options: any) {
     await searchProducts(options.search);
   } else if (options.top) {
     await showTopProducts();
+  } else if (options.featured) {
+    await showFeatured();
+  } else if (options.trending) {
+    await showTrending();
   } else if (options.category) {
     await browseCategory(options.category);
   } else {
@@ -510,19 +514,53 @@ async function showFeatured() {
       
       spinner.succeed('Featured Products ✨\n');
       
-      featured.forEach((product, index) => {
-        console.log(`${chalk.yellow(`${index + 1}.`)} ${chalk.bold(product.name)} - ${chalk.green(product.pricing?.current_price?.formatted || 'Free')}`);
-        if (product.description) {
-          console.log(chalk.dim(`   ${product.description.slice(0, 80)}...`));
-        }
-        console.log('');
+      const table = new Table({
+        head: [chalk.cyan('#'), chalk.cyan('Name'), chalk.cyan('Price'), chalk.cyan('Rating')],
+        colWidths: [4, 50, 15, 12]
       });
+      
+      featured.forEach((product, index) => {
+        table.push([
+          chalk.yellow(`${index + 1}`),
+          product.name.slice(0, 48),
+          chalk.green(product.pricing?.current_price?.formatted || 'Free'),
+          product.rating?.average ? `${product.rating.average} ★` : 'N/A'
+        ]);
+      });
+      
+      console.log(table.toString());
+      
+      const { viewDetails } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'viewDetails',
+          message: 'View product details?',
+          default: false
+        }
+      ]);
+      
+      if (viewDetails && featured.length > 0) {
+        const { productId } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'productId',
+            message: 'Select product:',
+            choices: featured.map(p => ({
+              name: `${p.name}`,
+              value: p.id
+            }))
+          }
+        ]);
+        
+        await showProductDetails(productId);
+      }
     } else {
       await new Promise(resolve => setTimeout(resolve, 500));
       spinner.succeed('Editor\'s Picks ✨\n');
       
       console.log(chalk.white('1. AI-Powered Code Assistant - ') + chalk.green('$39.99') + chalk.dim(' (Save 30%)'));
       console.log(chalk.white('2. Complete Web3 Development Kit - ') + chalk.green('$129.99') + chalk.dim(' (Free updates)'));
+      console.log(chalk.white('3. DevOps Automation Suite - ') + chalk.green('$89.99') + chalk.dim(' (Popular)'));
       console.log('');
     }
     
@@ -539,17 +577,28 @@ async function showRecent() {
       const response = await client.products.list({ per_page: 10 });
       spinner.succeed('Recently added products\n');
       
-      response.data.slice(0, 5).forEach(product => {
-        console.log(`${chalk.green('🆕')} ${chalk.bold(product.name)} - ${chalk.green(product.pricing?.current_price?.formatted || 'Free')}`);
-        console.log(chalk.dim(`   ID: ${product.id} | Type: ${product.type || 'N/A'}`));
+      const table = new Table({
+        head: [chalk.cyan('Name'), chalk.cyan('Price'), chalk.cyan('Status'), chalk.cyan('Type')],
+        colWidths: [40, 15, 12, 15]
       });
-      console.log('');
+      
+      response.data.slice(0, 10).forEach(product => {
+        table.push([
+          product.name.slice(0, 38),
+          chalk.green(product.pricing?.current_price?.formatted || 'Free'),
+          product.status === 'published' ? chalk.green('Published') : chalk.yellow('Draft'),
+          product.type || 'N/A'
+        ]);
+      });
+      
+      console.log(table.toString());
     } else {
       await new Promise(resolve => setTimeout(resolve, 400));
       spinner.succeed('Recently added products (Demo)\n');
       
       console.log(`${chalk.green('🆕')} New Product Launch Template - ${chalk.green('$19.99')} ${chalk.dim('(2 hours ago)')}`);
       console.log(`${chalk.green('🆕')} ChatGPT Integration Guide - ${chalk.green('$14.99')} ${chalk.dim('(5 hours ago)')}`);
+      console.log(`${chalk.green('🆕')} API Automation Toolkit - ${chalk.green('$49.99')} ${chalk.dim('(1 day ago)')}`);
       console.log('');
     }
     
@@ -589,10 +638,20 @@ async function searchByPrice() {
       if (filtered.length === 0) {
         console.log(chalk.dim('No products found in this price range\n'));
       } else {
-        filtered.slice(0, 15).forEach(product => {
-          console.log(`${chalk.green('•')} ${product.name} - ${chalk.green(product.pricing?.current_price?.formatted || 'Free')}`);
+        const table = new Table({
+          head: [chalk.cyan('Name'), chalk.cyan('Price'), chalk.cyan('Rating')],
+          colWidths: [45, 15, 12]
         });
-        console.log('');
+        
+        filtered.slice(0, 20).forEach(product => {
+          table.push([
+            product.name.slice(0, 43),
+            chalk.green(product.pricing?.current_price?.formatted || 'Free'),
+            product.rating?.average ? `${product.rating.average} ★` : 'N/A'
+          ]);
+        });
+        
+        console.log(table.toString());
       }
     } else {
       await new Promise(resolve => setTimeout(resolve, 600));
@@ -600,6 +659,7 @@ async function searchByPrice() {
       
       console.log(`${chalk.green('•')} Basic Plan - $${min + 9.99}`);
       console.log(`${chalk.green('•')} Standard Package - $${min + 29.99}`);
+      console.log(`${chalk.green('•')} Premium Bundle - $${min + 59.99}`);
       console.log('');
     }
     

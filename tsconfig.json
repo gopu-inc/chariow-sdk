@@ -1,70 +1,30 @@
 {
   "compilerOptions": {
-    // Version et module
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2022", "DOM"],
-    
-    // Sortie
+    "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "removeComments": false,
-    
-    // Strictesse
-    "strict": false,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
-    "strictFunctionTypes": false,
-    "strictBindCallApply": false,
-    "strictPropertyInitialization": false,
-    "noImplicitThis": false,
-    "alwaysStrict": false,
-    
-    // Modules et imports
-    "allowSyntheticDefaultImports": true,
+    "strict": true,
     "esModuleInterop": true,
-    "allowJs": true,
-    "checkJs": false,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    
-    // Autres options
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmitOnError": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noImplicitReturns": false,
-    "noFallthroughCasesInSwitch": false,
-    "inlineSourceMap": false,
-    
-    // Expérimental
-    "experimentalDecorators": false,
-    "emitDecoratorMetadata": false,
-    
-    // Types
-    "types": ["node"],
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "noEmit": false,
+    "emitDeclarationOnly": false,
+    "isolatedModules": true,
+    "moduleDetection": "force"
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.js",
-    "src/**/*.json"
-  ],
+  "include": ["src/**/*"],
   "exclude": [
     "node_modules",
     "dist",
-    "coverage",
     "**/*.test.ts",
     "**/*.spec.ts"
-  ],
-  "ts-node": {
-    "esm": true,
-    "experimentalSpecifierResolution": "node",
-    "transpileOnly": true
-  }
+  ]
 }

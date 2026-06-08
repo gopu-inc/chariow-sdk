@@ -1,0 +1,12 @@
+src/
+tsconfig.json
+rollup.config.js
+node_modules/
+*.log
+.DS_Store
+*.tgz
+coverage/
+.nyc_output/
+.vscode/
+.idea/
+.charc

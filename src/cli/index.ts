@@ -8,7 +8,7 @@ import { productsCommand } from './commands/products.js';
 import { exploreCommand } from './commands/explore.js';
 
 // Version
-const VERSION = '2.0.0';
+const VERSION = '2.1.3';
 
 // Banner avec effet de bordure moderne
 const banner = chalk.hex('#6366f1')(`
@@ -21,7 +21,7 @@ const banner = chalk.hex('#6366f1')(`
 ║    ╚██████╗██║  ██║██║  ██║██║  ██║██║╚██████╔╝╚███╔███╔╝                  ║
 ║     ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝  ╚══╝╚══╝                   ║
 ║                                                                            ║
-║                     Enterprise Commerce CLI v${VERSION}                    ║
+║                     Enterprise Commerce CLI v${VERSION}                         ║
 ║                     Manage • Sell • Grow                                   ║
 ║                                                                            ║
 ╚════════════════════════════════════════════════════════════════════════════╝
