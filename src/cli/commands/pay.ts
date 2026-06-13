@@ -171,11 +171,12 @@ async function interactiveCheckout(client: Chariow) {
       })),
     },
     {
-      type: 'number',
+      type: 'input',
       name: 'quantity',
       message: '🔢 Quantity:',
-      default: 1,
-      validate: (v: number) => v >= 1 ? true : 'At least 1',
+      default: '1',
+      validate: (v: string) => (Number.isInteger(Number(v)) && Number(v) >= 1) ? true : 'Enter a whole number ≥ 1',
+      filter: (v: string) => parseInt(v, 10) || 1,
     },
     {
       type: 'input',
@@ -306,10 +307,12 @@ async function refundPayment(client: Chariow, id: string) {
       default: false,
     },
     {
-      type: 'number',
+      type: 'input',
       name: 'amount',
       message: 'Refund amount:',
       when: (a: any) => a.partial,
+      validate: (v: string) => !isNaN(Number(v)) && Number(v) > 0 ? true : 'Enter a positive number',
+      filter: (v: string) => parseFloat(v),
     },
     {
       type: 'confirm',
