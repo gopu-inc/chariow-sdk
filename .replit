@@ -27,4 +27,4 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run build && echo '✓ Build OK' && node dist/cli/index.js --help"
+args = "npm run build && node dist/cli/index.js list"
