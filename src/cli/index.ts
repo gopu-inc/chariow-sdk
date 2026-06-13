@@ -2,14 +2,19 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { interactiveMode } from './commands/dashboard.js';
-import { configCommand } from './commands/config.js';
-import { productsCommand } from './commands/products.js';
-import { exploreCommand } from './commands/explore.js';
-import { salesCommand } from './commands/sales.js';
-import { storeCommand } from './commands/store.js';
+import { interactiveMode }  from './commands/dashboard.js';
+import { configCommand }    from './commands/config.js';
+import { productsCommand }  from './commands/products.js';
+import { exploreCommand }   from './commands/explore.js';
+import { salesCommand }     from './commands/sales.js';
+import { storeCommand }     from './commands/store.js';
+import { wsCommand }        from './commands/ws.js';
+import { hooksCommand }     from './commands/hooks.js';
+import { dnsCommand }       from './commands/dns.js';
+import { payCommand }       from './commands/pay.js';
+import { funcCommand }      from './commands/func.js';
 
-const VERSION = '2.1.3';
+const VERSION = '2.2.0';
 
 const banner = chalk.hex('#6366f1')(`
 ╔════════════════════════════════════════════════════════════════════════════╗
@@ -21,8 +26,8 @@ const banner = chalk.hex('#6366f1')(`
 ║    ╚██████╗██║  ██║██║  ██║██║  ██║██║╚██████╔╝╚███╔███╔╝               ║
 ║     ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝  ╚══╝╚══╝                ║
 ║                                                                            ║
-║              Enterprise Commerce CLI  `) + chalk.hex('#94a3b8')(`v${VERSION}`) + chalk.hex('#6366f1')(`                         ║
-║              Manage • Sell • Grow • Analyse • Explore                     ║
+║     Enterprise Commerce CLI  `) + chalk.hex('#94a3b8')(`v${VERSION}`) + chalk.hex('#6366f1')(`                                        ║
+║     Manage · Pay · Hooks · DNS · WebSocket · Func                        ║
 ║                                                                            ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 `);
@@ -41,7 +46,7 @@ program
 program
   .command('dashboard')
   .alias('d')
-  .description(chalk.hex('#10b981')('📊 Interactive TUI dashboard (Products · Sales · Store)'))
+  .description(chalk.hex('#10b981')('📊 Interactive TUI dashboard  (Products · Sales · Store)'))
   .action(interactiveMode);
 
 // ─── config ──────────────────────────────────────────────────────────────────
@@ -62,12 +67,12 @@ program
   .option('-g, --get <id>', 'Get product by ID')
   .option('-s, --search <term>', 'Search products')
   .option('-c, --create', 'Create a new product (interactive)')
-  .option('--publish <id>', 'Publish a product (set status to published)')
-  .option('--unpublish <id>', 'Unpublish a product (set status to draft)')
+  .option('--publish <id>', 'Publish a product')
+  .option('--unpublish <id>', 'Unpublish a product (back to draft)')
   .option('-d, --delete <id>', 'Delete a product')
   .option('--stats', 'Show product statistics')
-  .option('--status <status>', 'Filter by status (published|draft) when listing')
-  .option('--limit <n>', 'Number of products to fetch (default: 50)')
+  .option('--status <status>', 'Filter by status when listing  (published|draft)')
+  .option('--limit <n>', 'Number of products to fetch  (default: 50)')
   .action(productsCommand);
 
 // ─── sales ───────────────────────────────────────────────────────────────────
@@ -75,9 +80,9 @@ program
   .command('sales')
   .description(chalk.hex('#10b981')('🛒 Sales & orders management'))
   .option('-l, --list', 'List recent sales')
-  .option('-g, --get <id>', 'Get sale details by ID')
+  .option('-g, --get <id>', 'Get sale by ID')
   .option('--stats', 'Show sales statistics')
-  .option('--limit <n>', 'Number of sales to fetch (default: 20)')
+  .option('--limit <n>', 'Number of sales to fetch  (default: 20)')
   .action(salesCommand);
 
 // ─── store ───────────────────────────────────────────────────────────────────
@@ -89,12 +94,66 @@ program
 // ─── explore ─────────────────────────────────────────────────────────────────
 program
   .command('explore')
-  .description(chalk.hex('#8b5cf6')('🔍 Explore the Chariow marketplace (all stores & products)'))
+  .description(chalk.hex('#8b5cf6')('🔍 Explore the Chariow marketplace  (stores & products)'))
   .option('-s, --search <term>', 'Search stores by name')
   .option('--store <slug>', 'View a specific store and its products')
-  .option('-t, --top', 'View top stores (by product count)')
-  .option('-p, --products [category]', 'Browse all published products (optionally filter by category)')
+  .option('-t, --top', 'Top stores by product count')
+  .option('-p, --products [category]', 'Browse all published products  (optional category filter)')
   .action(exploreCommand);
+
+// ─── pay ─────────────────────────────────────────────────────────────────────
+program
+  .command('pay')
+  .description(chalk.hex('#10b981')('💳 Chariow Pay  —  payments & checkout'))
+  .option('--checkout', 'Interactive checkout wizard')
+  .option('--buy <product_id>', 'Buy a specific product')
+  .option('-l, --list', 'List payment history')
+  .option('-g, --get <id>', 'Get payment details')
+  .option('--refund <id>', 'Refund a payment')
+  .option('--status <status>', 'Filter payments by status  (pending|succeeded|failed|refunded)')
+  .option('--limit <n>', 'Number of payments  (default: 20)')
+  .option('--email <email>', 'Customer email  (used with --buy)')
+  .option('--name <name>', 'Customer name  (used with --buy)')
+  .action(payCommand);
+
+// ─── hooks ───────────────────────────────────────────────────────────────────
+program
+  .command('hooks')
+  .description(chalk.hex('#f59e0b')('🔗 Webhook management'))
+  .option('-l, --list', 'List all webhooks')
+  .option('--get <id>', 'Get webhook details')
+  .option('--create', 'Create a new webhook  (interactive)')
+  .option('--delete <id>', 'Delete a webhook')
+  .option('--test <id>', 'Send a test payload to a webhook')
+  .option('--deliveries <id>', 'View delivery history for a webhook')
+  .action(hooksCommand);
+
+// ─── dns ─────────────────────────────────────────────────────────────────────
+program
+  .command('dns')
+  .description(chalk.hex('#3b82f6')('🌐 Custom domain & DNS management'))
+  .option('-l, --list', 'List all custom domains')
+  .option('--info <id>', 'Get domain details and DNS records')
+  .option('--add [domain]', 'Add a custom domain  (interactive if omitted)')
+  .option('--verify <id>', 'Trigger domain verification')
+  .option('--remove <id>', 'Remove a custom domain')
+  .action(dnsCommand);
+
+// ─── ws ──────────────────────────────────────────────────────────────────────
+program
+  .command('ws')
+  .description(chalk.hex('#6366f1')('🔌 WebSocket live event monitor'))
+  .option('--events <types>', 'Comma-separated event types  (default: all)  e.g. sale,product')
+  .option('--store', 'Subscribe to store events')
+  .option('--product <id>', 'Subscribe to a specific product')
+  .action(wsCommand);
+
+// ─── func ────────────────────────────────────────────────────────────────────
+program
+  .command('func')
+  .description(chalk.hex('#8b5cf6')('⚡ api.function.pay — Local HTTP gateway for cross-app payments'))
+  .option('--port <n>', 'Port to listen on  (default: 4242)')
+  .action(funcCommand);
 
 // ─── list ─────────────────────────────────────────────────────────────────────
 program
@@ -108,55 +167,112 @@ program
   .description(chalk.hex('#94a3b8')('Show help information'))
   .action(() => program.outputHelp());
 
+// ─── Show commands ────────────────────────────────────────────────────────────
 function showCommands() {
-  console.log(chalk.hex('#6366f1').bold('\n📋 AVAILABLE COMMANDS\n'));
-  const commands = [
-    { cmd: 'dashboard, d',  desc: 'Interactive TUI  (Products · Sales · Store)', color: '#10b981', icon: '📊' },
-    { cmd: 'products',      desc: 'Manage products  (list, get, search, create, publish, delete)', color: '#3b82f6', icon: '📦' },
-    { cmd: 'sales',         desc: 'Sales & orders  (list, get, stats)', color: '#10b981', icon: '🛒' },
-    { cmd: 'store',         desc: 'Store information & appearance', color: '#8b5cf6', icon: '🏪' },
-    { cmd: 'explore',       desc: 'Browse marketplace  (all stores, products, search)', color: '#8b5cf6', icon: '🔍' },
-    { cmd: 'config',        desc: 'Manage API key  (set, get, remove)', color: '#f59e0b', icon: '🔧' },
-    { cmd: 'help',          desc: 'Show help information', color: '#94a3b8', icon: '❓' },
+  console.log(chalk.hex('#6366f1').bold('\n📋 ALL COMMANDS\n'));
+
+  const sections: Array<{ title: string; color: string; cmds: [string, string][] }> = [
+    {
+      title: 'CORE',
+      color: '#94a3b8',
+      cmds: [
+        ['dashboard, d',  'Interactive TUI  (Products · Sales · Store)'],
+        ['config',        'Manage API key  (set, get, remove)'],
+      ],
+    },
+    {
+      title: 'PRODUCTS',
+      color: '#3b82f6',
+      cmds: [
+        ['products --list',             'List all products'],
+        ['products --create',           'Create product  (interactive form)'],
+        ['products --publish <id>',     'Publish a product'],
+        ['products --unpublish <id>',   'Move product to draft'],
+        ['products --delete <id>',      'Delete a product'],
+        ['products --search <term>',    'Search products'],
+        ['products --stats',            'Product statistics'],
+      ],
+    },
+    {
+      title: 'PAY  —  Chariow Pay',
+      color: '#10b981',
+      cmds: [
+        ['pay --checkout',         'Interactive checkout wizard'],
+        ['pay --buy <product_id>', 'Buy a product directly'],
+        ['pay --list',             'Payment history'],
+        ['pay --get <id>',         'Payment details'],
+        ['pay --refund <id>',      'Refund a payment'],
+      ],
+    },
+    {
+      title: 'FUNC  —  api.function.pay',
+      color: '#8b5cf6',
+      cmds: [
+        ['func',              'Start local HTTP gateway on port 4242'],
+        ['func --port <n>',   'Start on custom port'],
+      ],
+    },
+    {
+      title: 'WEBSOCKET',
+      color: '#6366f1',
+      cmds: [
+        ['ws',                       'Live event monitor  (all events)'],
+        ['ws --events sale,product', 'Filter specific event types'],
+        ['ws --store',               'Subscribe to store events'],
+        ['ws --product <id>',        'Subscribe to a product'],
+      ],
+    },
+    {
+      title: 'HOOKS',
+      color: '#f59e0b',
+      cmds: [
+        ['hooks --list',           'List all webhooks'],
+        ['hooks --create',         'Create webhook  (interactive)'],
+        ['hooks --test <id>',      'Send test payload'],
+        ['hooks --deliveries <id>','Delivery history'],
+        ['hooks --delete <id>',    'Delete webhook'],
+      ],
+    },
+    {
+      title: 'DNS',
+      color: '#3b82f6',
+      cmds: [
+        ['dns --list',        'List custom domains'],
+        ['dns --add <domain>','Add a domain'],
+        ['dns --verify <id>', 'Verify domain'],
+        ['dns --info <id>',   'DNS records & status'],
+        ['dns --remove <id>', 'Remove domain'],
+      ],
+    },
+    {
+      title: 'OTHER',
+      color: '#94a3b8',
+      cmds: [
+        ['sales --list',   'Sales & orders'],
+        ['sales --stats',  'Sales statistics'],
+        ['store',          'Store info & appearance'],
+        ['explore',        'Marketplace browser  (all stores & products)'],
+      ],
+    },
   ];
-  commands.forEach(c => {
-    console.log(`  ${chalk.hex(c.color)(`${c.icon} ${c.cmd.padEnd(18)}`)} ${chalk.hex('#94a3b8')(c.desc)}`);
+
+  sections.forEach(({ title, color, cmds }) => {
+    console.log(chalk.hex(color).bold(`  ${title}\n`));
+    cmds.forEach(([cmd, desc]) => {
+      console.log(`    ${chalk.hex(color)(`chariow ${cmd.padEnd(36)}`)} ${chalk.hex('#94a3b8')(desc)}`);
+    });
+    console.log('');
   });
-  console.log('');
-  console.log(chalk.hex('#6366f1').bold('  PRODUCTS QUICK REFERENCE\n'));
-  const pCmds = [
-    ['chariow products --list',             'List all your products'],
-    ['chariow products --create',           'Create a new product (interactive form)'],
-    ['chariow products --publish <id>',     'Publish a product immediately'],
-    ['chariow products --unpublish <id>',   'Move a product back to draft'],
-    ['chariow products --delete <id>',      'Delete a product'],
-    ['chariow products --search <term>',    'Search your products'],
-    ['chariow products --stats',            'View product statistics'],
-  ];
-  pCmds.forEach(([cmd, desc]) => {
-    console.log(`  ${chalk.hex('#3b82f6')(cmd.padEnd(44))} ${chalk.hex('#94a3b8')(desc)}`);
-  });
-  console.log('');
-  console.log(chalk.hex('#6366f1').bold('  EXPLORE QUICK REFERENCE\n'));
-  const eCmds = [
-    ['chariow explore',                  'Interactive marketplace browser'],
-    ['chariow explore --search <name>',  'Search stores by name'],
-    ['chariow explore --store <slug>',   'View a specific store'],
-    ['chariow explore --top',            'Top stores by product count'],
-    ['chariow explore --products',       'Browse all published products'],
-  ];
-  eCmds.forEach(([cmd, desc]) => {
-    console.log(`  ${chalk.hex('#8b5cf6')(cmd.padEnd(44))} ${chalk.hex('#94a3b8')(desc)}`);
-  });
-  console.log(chalk.hex('#94a3b8')('\n💡 Tip: chariow <command> --help  for per-command options\n'));
+
+  console.log(chalk.hex('#94a3b8')('  💡 chariow <command> --help  for per-command options\n'));
 }
 
-// ─── Error output ────────────────────────────────────────────────────────────
+// ─── Error output ─────────────────────────────────────────────────────────────
 program.configureOutput({
   outputError: (str, write) => write(chalk.hex('#ef4444')(str)),
 });
 
-// ─── Entry ───────────────────────────────────────────────────────────────────
+// ─── Entry ────────────────────────────────────────────────────────────────────
 if (process.argv.length === 2) {
   console.log(chalk.hex('#94a3b8')('🚀 Starting interactive dashboard...\n'));
   interactiveMode();
@@ -164,7 +280,7 @@ if (process.argv.length === 2) {
   program.parse();
 }
 
-// ─── Global handlers ─────────────────────────────────────────────────────────
+// ─── Global handlers ──────────────────────────────────────────────────────────
 process.on('unhandledRejection', (error: any) => {
   console.error(chalk.hex('#ef4444')(`\n❌ ${error?.message || error}\n`));
   process.exit(1);
@@ -174,6 +290,6 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 process.on('SIGTERM', () => {
-  console.log(chalk.hex('#94a3b8')('\n\n👋 Terminated. Goodbye!\n'));
+  console.log(chalk.hex('#94a3b8')('\n\n👋 Terminated.\n'));
   process.exit(0);
 });
