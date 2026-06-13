@@ -1,4 +1,3 @@
-// utils/config.ts - Version corrigée
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
@@ -16,9 +15,8 @@ export interface CliConfig {
   lastCheck?: string;
 }
 
-// Configuration validation
 export function validateApiKey(key: string): boolean {
-  return key.length >= 32 && /^[a-f0-9]{32,}$/i.test(key);
+  return typeof key === 'string' && key.trim().length >= 8;
 }
 
 export function getConfig(): CliConfig | null {
@@ -26,13 +24,11 @@ export function getConfig(): CliConfig | null {
     if (fs.existsSync(CONFIG_FILE)) {
       const content = fs.readFileSync(CONFIG_FILE, 'utf-8');
       const config = JSON.parse(content);
-      
       if (!config.defaultPerPage) config.defaultPerPage = 20;
       if (!config.theme) config.theme = 'dark';
-      
       return config;
     }
-  } catch (error) {
+  } catch {
     console.error('Failed to read config');
   }
   return null;
@@ -43,14 +39,11 @@ export function setConfig(config: Partial<CliConfig>) {
     if (!fs.existsSync(CONFIG_DIR)) {
       fs.mkdirSync(CONFIG_DIR, { recursive: true });
     }
-    
     const existing = getConfig() || {};
     const merged = { ...existing, ...config };
-    
-    if (merged.apiKey && !validateApiKey(merged.apiKey)) {
-      throw new Error('Invalid API key format');
+    if (merged.apiKey !== undefined && merged.apiKey !== null && !validateApiKey(merged.apiKey)) {
+      throw new Error('Invalid API key format (minimum 8 characters)');
     }
-    
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(merged, null, 2));
     return true;
   } catch (error) {
@@ -59,16 +52,12 @@ export function setConfig(config: Partial<CliConfig>) {
   }
 }
 
-// Version corrigée utilisant createCipheriv au lieu de createCipher
 export function encryptApiKey(key: string): string {
-  // Utiliser une clé dérivée fixe (à remplacer par une vraie clé en prod)
   const algorithm = 'aes-256-cbc';
   const keyBuffer = crypto.scryptSync('chariow-secret-key', 'salt', 32);
   const iv = crypto.randomBytes(16);
-  
   const cipher = crypto.createCipheriv(algorithm, keyBuffer, iv);
   const encrypted = cipher.update(key, 'utf8', 'hex') + cipher.final('hex');
-  
   return iv.toString('hex') + ':' + encrypted;
 }
 
@@ -76,7 +65,6 @@ export function decryptApiKey(encryptedData: string): string {
   const [ivHex, encrypted] = encryptedData.split(':');
   const iv = Buffer.from(ivHex, 'hex');
   const keyBuffer = crypto.scryptSync('chariow-secret-key', 'salt', 32);
-  
   const decipher = crypto.createDecipheriv('aes-256-cbc', keyBuffer, iv);
   return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
 }

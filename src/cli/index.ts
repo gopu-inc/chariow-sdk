@@ -6,47 +6,45 @@ import { interactiveMode } from './commands/dashboard.js';
 import { configCommand } from './commands/config.js';
 import { productsCommand } from './commands/products.js';
 import { exploreCommand } from './commands/explore.js';
+import { salesCommand } from './commands/sales.js';
+import { storeCommand } from './commands/store.js';
 
-// Version
 const VERSION = '2.1.3';
 
-// Banner avec effet de bordure moderne
 const banner = chalk.hex('#6366f1')(`
 ╔════════════════════════════════════════════════════════════════════════════╗
 ║                                                                            ║
-║     ██████╗██╗  ██╗ █████╗ ██████╗ ██╗ ██████╗ ██╗    ██╗                  ║
-║    ██╔════╝██║  ██║██╔══██╗██╔══██╗██║██╔═══██╗██║    ██║                  ║
-║    ██║     ███████║███████║██████╔╝██║██║   ██║██║ █╗ ██║                  ║
-║    ██║     ██╔══██║██╔══██║██╔══██╗██║██║   ██║██║███╗██║                  ║
-║    ╚██████╗██║  ██║██║  ██║██║  ██║██║╚██████╔╝╚███╔███╔╝                  ║
-║     ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝  ╚══╝╚══╝                   ║
+║     ██████╗██╗  ██╗ █████╗ ██████╗ ██╗ ██████╗ ██╗    ██╗               ║
+║    ██╔════╝██║  ██║██╔══██╗██╔══██╗██║██╔═══██╗██║    ██║               ║
+║    ██║     ███████║███████║██████╔╝██║██║   ██║██║ █╗ ██║               ║
+║    ██║     ██╔══██║██╔══██║██╔══██╗██║██║   ██║██║███╗██║               ║
+║    ╚██████╗██║  ██║██║  ██║██║  ██║██║╚██████╔╝╚███╔███╔╝               ║
+║     ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝  ╚══╝╚══╝                ║
 ║                                                                            ║
-║                     Enterprise Commerce CLI v${VERSION}                         ║
-║                     Manage • Sell • Grow                                   ║
+║              Enterprise Commerce CLI  `) + chalk.hex('#94a3b8')(`v${VERSION}`) + chalk.hex('#6366f1')(`                         ║
+║              Manage • Sell • Grow • Analyse                               ║
 ║                                                                            ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 `);
 
-// Afficher le banner
 console.log(banner);
 
-// Créer le programme
 const program = new Command();
 
 program
   .name('chariow')
-  .description(chalk.hex('#94a3b8')('⚡ CLI for Chariow - Next generation e-commerce platform'))
+  .description(chalk.hex('#94a3b8')('⚡ CLI for Chariow — Next generation e-commerce platform'))
   .version(VERSION)
   .helpOption('-h, --help', chalk.hex('#94a3b8')('Display help information'));
 
-// Commande: dashboard (interactive TUI)
+// ─── dashboard ──────────────────────────────────────────────────────────────
 program
   .command('dashboard')
   .alias('d')
-  .description(chalk.hex('#10b981')('📊 Launch interactive dashboard (TUI)'))
+  .description(chalk.hex('#10b981')('📊 Interactive TUI dashboard (Products · Sales · Store)'))
   .action(interactiveMode);
 
-// Commande: config
+// ─── config ─────────────────────────────────────────────────────────────────
 program
   .command('config')
   .description(chalk.hex('#f59e0b')('🔧 Manage CLI configuration'))
@@ -56,7 +54,7 @@ program
   .option('--reset', 'Reset all configuration')
   .action(configCommand);
 
-// Commande: products
+// ─── products ───────────────────────────────────────────────────────────────
 program
   .command('products')
   .description(chalk.hex('#3b82f6')('📦 Product management'))
@@ -66,9 +64,26 @@ program
   .option('--stats', 'Show product statistics')
   .option('-c, --create', 'Create a new product (interactive)')
   .option('-d, --delete <id>', 'Delete a product')
+  .option('--limit <n>', 'Number of products to fetch (default: 20)')
   .action(productsCommand);
 
-// Commande: explore
+// ─── sales ──────────────────────────────────────────────────────────────────
+program
+  .command('sales')
+  .description(chalk.hex('#10b981')('🛒 Sales & orders management'))
+  .option('-l, --list', 'List recent sales')
+  .option('-g, --get <id>', 'Get sale details by ID')
+  .option('--stats', 'Show sales statistics')
+  .option('--limit <n>', 'Number of sales to fetch (default: 20)')
+  .action(salesCommand);
+
+// ─── store ──────────────────────────────────────────────────────────────────
+program
+  .command('store')
+  .description(chalk.hex('#8b5cf6')('🏪 Store information & appearance'))
+  .action(storeCommand);
+
+// ─── explore ────────────────────────────────────────────────────────────────
 program
   .command('explore')
   .description(chalk.hex('#8b5cf6')('🔍 Explore marketplace'))
@@ -79,66 +94,57 @@ program
   .option('--trending', 'View trending products')
   .action(exploreCommand);
 
-// Commande: help personnalisée
-program
-  .command('help')
-  .description(chalk.hex('#94a3b8')('Show help information'))
-  .action(() => {
-    program.outputHelp();
-  });
-
-// Fonction pour afficher les commandes disponibles
-function showCommands() {
-  console.log(chalk.hex('#6366f1').bold('\n📋 AVAILABLE COMMANDS\n'));
-  
-  const commands = [
-    { cmd: 'dashboard, d', desc: 'Launch interactive dashboard', color: '#10b981', icon: '📊' },
-    { cmd: 'config', desc: 'Manage API configuration', color: '#f59e0b', icon: '🔧' },
-    { cmd: 'products', desc: 'Manage products', color: '#3b82f6', icon: '📦' },
-    { cmd: 'explore', desc: 'Explore marketplace', color: '#8b5cf6', icon: '🔍' },
-    { cmd: 'help', desc: 'Show help information', color: '#94a3b8', icon: '❓' }
-  ];
-  
-  commands.forEach(cmd => {
-    console.log(`  ${chalk.hex(cmd.color)(`${cmd.icon} ${cmd.cmd.padEnd(18)}`)} ${chalk.hex('#94a3b8')(cmd.desc)}`);
-  });
-  
-  console.log(chalk.hex('#94a3b8')('\n💡 TIP: Use "chariow <command> --help" for more details\n'));
-}
-
-// Commande: list (alias pour aider)
+// ─── list ───────────────────────────────────────────────────────────────────
 program
   .command('list')
   .description('List all available commands')
   .action(showCommands);
 
-// Gestion des erreurs
+// ─── help ───────────────────────────────────────────────────────────────────
+program
+  .command('help')
+  .description(chalk.hex('#94a3b8')('Show help information'))
+  .action(() => program.outputHelp());
+
+function showCommands() {
+  console.log(chalk.hex('#6366f1').bold('\n📋 AVAILABLE COMMANDS\n'));
+  const commands = [
+    { cmd: 'dashboard, d', desc: 'Interactive TUI  (Products · Sales · Store)', color: '#10b981', icon: '📊' },
+    { cmd: 'products',     desc: 'Product management  (list, get, search, create, delete)', color: '#3b82f6', icon: '📦' },
+    { cmd: 'sales',        desc: 'Sales & orders  (list, get, stats)', color: '#10b981', icon: '🛒' },
+    { cmd: 'store',        desc: 'Store information & appearance', color: '#8b5cf6', icon: '🏪' },
+    { cmd: 'explore',      desc: 'Explore marketplace  (search, top, trending, category)', color: '#8b5cf6', icon: '🔍' },
+    { cmd: 'config',       desc: 'Manage API key  (set, get, remove)', color: '#f59e0b', icon: '🔧' },
+    { cmd: 'help',         desc: 'Show help information', color: '#94a3b8', icon: '❓' },
+  ];
+  commands.forEach(c => {
+    console.log(`  ${chalk.hex(c.color)(`${c.icon} ${c.cmd.padEnd(20)}`)} ${chalk.hex('#94a3b8')(c.desc)}`);
+  });
+  console.log(chalk.hex('#94a3b8')('\n💡 Tip: chariow <command> --help   for per-command options\n'));
+}
+
+// ─── Error output ────────────────────────────────────────────────────────────
 program.configureOutput({
-  outputError: (str, write) => {
-    write(chalk.hex('#ef4444')(str));
-  }
+  outputError: (str, write) => write(chalk.hex('#ef4444')(str)),
 });
 
-// Vérifier si aucune commande n'est fournie
+// ─── Entry ───────────────────────────────────────────────────────────────────
 if (process.argv.length === 2) {
-  console.log(chalk.hex('#94a3b8')('\n🚀 Starting interactive mode...\n'));
+  console.log(chalk.hex('#94a3b8')('🚀 Starting interactive dashboard...\n'));
   interactiveMode();
 } else {
   program.parse();
 }
 
-// Gestion des promesses non gérées
-process.on('unhandledRejection', (error: Error) => {
-  console.error(chalk.hex('#ef4444')(`\n❌ Unhandled error: ${error.message}\n`));
+// ─── Global handlers ─────────────────────────────────────────────────────────
+process.on('unhandledRejection', (error: any) => {
+  console.error(chalk.hex('#ef4444')(`\n❌ ${error?.message || error}\n`));
   process.exit(1);
 });
-
-// Gestion des signaux
 process.on('SIGINT', () => {
-  console.log(chalk.hex('#94a3b8')('\n\n👋 Goodbye! See you next time.\n'));
+  console.log(chalk.hex('#94a3b8')('\n\n👋 Goodbye!\n'));
   process.exit(0);
 });
-
 process.on('SIGTERM', () => {
   console.log(chalk.hex('#94a3b8')('\n\n👋 Terminated. Goodbye!\n'));
   process.exit(0);
