@@ -67,7 +67,7 @@ function newId(prefix: string): string {
 }
 
 // ─── Request handler (same gateway as func + /serve/* routes) ─────────────
-async function handleRequest(
+export async function handleGatewayRequest(
   req: http.IncomingMessage,
   res: http.ServerResponse,
   defaultApiKey?: string,
@@ -582,7 +582,7 @@ window.open(charge.checkout_url) // redirect to Chariow Pay page`,
     const reqUrl = req.url || '/';
     let status   = 200;
     try {
-      const result = await handleRequest(req, res, defaultApiKey);
+      const result = await handleGatewayRequest(req, res, defaultApiKey);
       status = result.status;
     } catch (err: any) {
       jsonRes(res, 500, { error: { code: 'internal', message: err.message } });

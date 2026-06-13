@@ -4,6 +4,7 @@ import inquirer from 'inquirer';
 import Table from 'cli-table3';
 import { Chariow } from '../../index.js';
 import { getConfig } from '../utils/config.js';
+import { parseProductInput } from '../utils/url-parser.js';
 import type { PaymentStatus } from '../../modules/pay.js';
 
 const C = {
@@ -35,59 +36,6 @@ function requireClient(): Chariow {
     process.exit(1);
   }
   return new Chariow(config.apiKey);
-}
-
-// ─── URL parser ───────────────────────────────────────────────────────────────
-// Accepts:
-//   https://chariow.com/store/my-store/products/my-product
-//   https://my-store.chariow.com/products/my-product
-//   https://chariow.com/products/my-product
-//   my-product-slug
-//   prod_abc123
-function parseProductInput(input: string): { type: 'url' | 'slug' | 'id'; value: string; storeSlug?: string } {
-  input = input.trim();
-
-  // Full URL
-  if (input.startsWith('http://') || input.startsWith('https://')) {
-    try {
-      const u = new URL(input);
-
-      // https://chariow.com/store/:storeSlug/products/:productSlug
-      const storeProductMatch = u.pathname.match(/\/store\/([^/]+)\/products\/([^/]+)/);
-      if (storeProductMatch) {
-        return { type: 'url', value: storeProductMatch[2], storeSlug: storeProductMatch[1] };
-      }
-
-      // https://chariow.com/products/:productSlug
-      const directProductMatch = u.pathname.match(/\/products\/([^/]+)/);
-      if (directProductMatch) {
-        return { type: 'url', value: directProductMatch[1] };
-      }
-
-      // https://:storeSlug.chariow.com/products/:productSlug
-      const subdomainMatch = u.hostname.match(/^([^.]+)\.chariow\.com$/);
-      const productPathMatch = u.pathname.match(/\/products\/([^/]+)/);
-      if (subdomainMatch && productPathMatch) {
-        return { type: 'url', value: productPathMatch[1], storeSlug: subdomainMatch[1] };
-      }
-
-      // Fallback — use last path segment
-      const segments = u.pathname.split('/').filter(Boolean);
-      if (segments.length > 0) {
-        return { type: 'url', value: segments[segments.length - 1] };
-      }
-    } catch {
-      /* not a valid URL, fall through */
-    }
-  }
-
-  // Raw product ID (e.g. prod_abc123 or UUID)
-  if (/^(prod_|pay_|[0-9a-f-]{36}$)/.test(input)) {
-    return { type: 'id', value: input };
-  }
-
-  // Slug
-  return { type: 'slug', value: input };
 }
 
 // ─── Resolve product from URL/slug/ID ─────────────────────────────────────
