@@ -4,688 +4,587 @@ import inquirer from 'inquirer';
 import Table from 'cli-table3';
 import { getConfig } from '../utils/config.js';
 import { Chariow } from '../../index.js';
+import type { MarketplaceStore, MarketplaceProduct } from '../../modules/marketplace.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
 
-let client: Chariow | null = null;
+const C = {
+  primary: chalk.hex('#6366f1'),
+  success: chalk.hex('#10b981'),
+  warning: chalk.hex('#f59e0b'),
+  error:   chalk.hex('#ef4444'),
+  info:    chalk.hex('#3b82f6'),
+  accent:  chalk.hex('#8b5cf6'),
+  text:    chalk.hex('#94a3b8'),
+  dim:     chalk.dim,
+  bold:    chalk.bold,
+  cyan:    chalk.cyan,
+  white:   chalk.white,
+};
 
-async function ensureAuth(): Promise<boolean> {
+function getClient(): Chariow | null {
   const config = getConfig();
-  
-  if (config?.apiKey && !client) {
-    client = new Chariow(config.apiKey);
-  }
-  
-  return true;
+  if (config?.apiKey) return new Chariow(config.apiKey);
+  return null;
 }
 
+// ─── Entry ────────────────────────────────────────────────────────────────
 export async function exploreCommand(options: any) {
-  console.log(chalk.cyan('\n🔍 EXPLORE MODE - Discover millions of products\n'));
-  
-  await ensureAuth();
-  
+  console.log('\n' + C.accent.bold('╔══════════════════════════════════════════════════════════╗'));
+  console.log(C.accent.bold('║   🔍  CHARIOW MARKETPLACE  —  Explore All Stores         ║'));
+  console.log(C.accent.bold('╚══════════════════════════════════════════════════════════╝\n'));
+
   if (options.search) {
-    await searchProducts(options.search);
+    await searchStores(options.search);
+  } else if (options.store) {
+    await viewStore(options.store);
   } else if (options.top) {
-    await showTopProducts();
-  } else if (options.featured) {
-    await showFeatured();
-  } else if (options.trending) {
-    await showTrending();
-  } else if (options.category) {
-    await browseCategory(options.category);
+    await showTopStores();
+  } else if (options.products) {
+    await browseAllProducts(options.products === true ? undefined : options.products);
   } else {
     await interactiveExplore();
   }
 }
 
+// ─── Interactive main menu ────────────────────────────────────────────────
 async function interactiveExplore() {
   let running = true;
-  
+
   while (running) {
     const { action } = await inquirer.prompt([
       {
         type: 'list',
         name: 'action',
-        message: 'Explore Chariow Marketplace:',
+        message: C.accent('What would you like to explore?'),
         pageSize: 12,
         choices: [
-          { name: '🔍 Search Products', value: 'search' },
-          { name: '⭐ Top Rated Products', value: 'top' },
-          { name: '🔥 Trending Now', value: 'trending' },
-          { name: '📂 Browse by Category', value: 'category' },
-          { name: '💎 Featured Products', value: 'featured' },
-          { name: '🆕 Recently Added', value: 'recent' },
-          { name: '💰 Price Range', value: 'price' },
-          { name: '🌐 Open Chariow in Browser', value: 'browser' },
-          { name: '◀️  Back to Main Menu', value: 'back' }
-        ]
-      }
+          { name: '🏪 Browse all stores',              value: 'stores' },
+          { name: '🔍 Search stores by name',          value: 'search_stores' },
+          { name: '📦 Browse all products',            value: 'products' },
+          { name: '⭐ Top rated stores',               value: 'top' },
+          { name: '🏷  Filter products by category',   value: 'category' },
+          { name: '💰 Filter products by price',       value: 'price' },
+          { name: '🌐 Open Chariow in browser',        value: 'browser' },
+          new inquirer.Separator(),
+          { name: '◀  Exit explore',                   value: 'back' },
+        ],
+      },
     ]);
-    
+
     switch (action) {
-      case 'search':
-        await searchInteractive();
-        break;
-      case 'top':
-        await showTopProducts();
-        break;
-      case 'trending':
-        await showTrending();
-        break;
-      case 'category':
-        await browseCategories();
-        break;
-      case 'featured':
-        await showFeatured();
-        break;
-      case 'recent':
-        await showRecent();
-        break;
-      case 'price':
-        await searchByPrice();
-        break;
-      case 'browser':
-        await openBrowser('https://chariow.com');
-        break;
-      case 'back':
-        running = false;
-        break;
+      case 'stores':        await browseStores(); break;
+      case 'search_stores': await searchStoresInteractive(); break;
+      case 'products':      await browseAllProducts(); break;
+      case 'top':           await showTopStores(); break;
+      case 'category':      await browseByCategory(); break;
+      case 'price':         await browseByPrice(); break;
+      case 'browser':       await openBrowser('https://chariow.com'); break;
+      case 'back':          running = false; break;
     }
   }
 }
 
-async function searchInteractive() {
-  const { term } = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'term',
-      message: 'What are you looking for?',
-      validate: (input: string) => input.length > 0
-    }
-  ]);
-  
-  await searchProducts(term);
-}
+// ─── Browse stores ────────────────────────────────────────────────────────
+async function browseStores(search?: string) {
+  const spinner = ora('Loading Chariow stores...').start();
+  const client = getClient();
 
-async function searchProducts(term: string) {
-  const spinner = ora(`Searching for "${term}"...`).start();
-  
   try {
-    if (client) {
-      const response = await client.products.list({ per_page: 50 });
-      const filtered = response.data.filter(p => 
-        p.name.toLowerCase().includes(term.toLowerCase()) ||
-        (p.description && p.description.toLowerCase().includes(term.toLowerCase()))
-      );
-      
-      spinner.succeed(`Found ${filtered.length} products for "${term}"\n`);
-      
-      if (filtered.length === 0) {
-        console.log(chalk.dim('No products found\n'));
-        return;
-      }
-      
-      const table = new Table({
-        head: [chalk.cyan('Name'), chalk.cyan('Price'), chalk.cyan('Rating'), chalk.cyan('Status')],
-        colWidths: [40, 15, 12, 12]
-      });
-      
-      filtered.slice(0, 20).forEach(product => {
-        table.push([
-          product.name.slice(0, 38),
-          product.pricing?.current_price?.formatted || 'Free',
-          product.rating?.average ? `${product.rating.average} ★` : 'N/A',
-          product.status === 'published' ? chalk.green('Published') : chalk.yellow('Draft')
-        ]);
-      });
-      
-      console.log(table.toString());
-      
-      const { viewDetails } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'viewDetails',
-          message: 'View product details?',
-          default: false
-        }
-      ]);
-      
-      if (viewDetails && filtered.length > 0) {
-        const { productId } = await inquirer.prompt([
-          {
-            type: 'list',
-            name: 'productId',
-            message: 'Select product:',
-            choices: filtered.slice(0, 20).map(p => ({
-              name: `${p.name}`,
-              value: p.id
-            }))
-          }
-        ]);
-        
-        await showProductDetails(productId);
-      }
-    } else {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      spinner.succeed(`Demo mode - Found 5 products for "${term}"\n`);
-      
-      const table = new Table({
-        head: [chalk.cyan('Product'), chalk.cyan('Price'), chalk.cyan('Rating'), chalk.cyan('Seller')],
-        colWidths: [35, 12, 10, 20]
-      });
-      
-      const mockResults = [
-        { name: `${term} Pro Edition`, price: '$49.99', rating: '4.8 ★', seller: 'TechStore' },
-        { name: `${term} Premium`, price: '$99.99', rating: '4.9 ★', seller: 'DigitalShop' },
-        { name: `${term} Basic`, price: '$19.99', rating: '4.5 ★', seller: 'EasyMart' },
-      ];
-      
-      mockResults.forEach(product => {
-        table.push([
-          product.name,
-          chalk.green(product.price),
-          chalk.yellow(product.rating),
-          product.seller
-        ]);
-      });
-      
-      console.log(table.toString());
-      console.log(chalk.dim('\n💡 Tip: Configure API key with "chariow config --set <key>" for real data\n'));
+    if (!client) {
+      spinner.fail('API key required. Run: chariow config --set <token>');
+      return;
     }
-    
-  } catch (error: any) {
-    spinner.fail('Search failed');
-    console.log(chalk.red(error.message));
+
+    const resp = await client.marketplace.listStores({ per_page: 50, search });
+    const stores = resp.data;
+
+    if (stores.length === 0) {
+      spinner.warn('No stores found.');
+      return;
+    }
+
+    spinner.succeed(`Found ${stores.length} store(s)\n`);
+
+    const table = new Table({
+      head: [C.cyan('#'), C.cyan('Store Name'), C.cyan('Status'), C.cyan('Products'), C.cyan('URL')],
+      colWidths: [4, 32, 12, 10, 36],
+    });
+
+    stores.forEach((s, i) => {
+      table.push([
+        C.dim(String(i + 1)),
+        C.bold(s.name.slice(0, 30)),
+        s.status === 'active' ? C.success('● Active') : C.warning(s.status || '—'),
+        C.accent(s.products_count != null ? String(s.products_count) : '—'),
+        C.text((s.url || '—').slice(0, 34)),
+      ]);
+    });
+
+    console.log(table.toString());
+
+    const { pick } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'pick',
+        message: 'View a store in detail?',
+        default: true,
+      },
+    ]);
+
+    if (pick) {
+      const { storeId } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'storeId',
+          message: 'Select a store:',
+          pageSize: 15,
+          choices: stores.map((s, i) => ({
+            name: `${i + 1}. ${s.name}  ${C.text(s.url || '')}`,
+            value: s.slug || s.id,
+          })),
+        },
+      ]);
+
+      await viewStore(storeId);
+    }
+  } catch (err: any) {
+    spinner.fail('Failed to load stores');
+    console.log(C.error(err.message));
   }
 }
 
-async function showProductDetails(productId: string) {
+// ─── View single store ────────────────────────────────────────────────────
+async function viewStore(slugOrId: string) {
+  const client = getClient();
   if (!client) {
-    console.log(chalk.yellow('\n⚠️  API key required to view product details'));
-    console.log(chalk.dim('Run: chariow config --set <your_api_key>\n'));
+    console.log(C.error('\nAPI key required. Run: chariow config --set <token>\n'));
     return;
   }
-  
-  const spinner = ora('Loading product details...').start();
-  
+
+  const spinner = ora(`Loading store "${slugOrId}"...`).start();
+
   try {
-    const product = await client.products.get(productId);
-    spinner.succeed();
-    
-    console.log('\n' + chalk.bold.cyan('📦 PRODUCT DETAILS\n'));
-    
-    const productUrl = `https://app.chariow.com/products/${product.id}`;
-    
-    const details = [
-      ['ID', product.id],
-      ['Name', chalk.bold(product.name || 'N/A')],
-      ['Description', product.description ? product.description.slice(0, 200) + '...' : 'No description'],
-      ['Status', product.status === 'published' ? chalk.green('Published') : chalk.red('Draft')],
-      ['Category', product.category?.label || 'Uncategorized'],
-      ['Price', product.pricing?.current_price?.formatted || 'Free'],
-      ['Sales', product.sales_count?.toString() || '0'],
-      ['Rating', product.rating?.average ? `${product.rating.average} ★ (${product.rating.count} reviews)` : 'No ratings'],
-      ['Type', product.type || 'N/A'],
-      ['On Sale Until', product.on_sale_until || 'N/A'],
-      ['URL', productUrl]
-    ];
-    
-    const table = new Table({
-      colWidths: [20, 50],
-      style: { 'padding-left': 1, 'padding-right': 1 }
-    });
-    
-    details.forEach(([key, value]) => {
-      table.push([chalk.gray(key + ':'), value]);
-    });
-    
-    console.log(table.toString());
-    
-    if (product.bundle) {
-      console.log(chalk.yellow('\n📦 BUNDLE INFORMATION\n'));
-      const bundleTable = new Table({
-        colWidths: [20, 30],
-        style: { 'padding-left': 1, 'padding-right': 1 }
-      });
-      bundleTable.push([chalk.gray('Bundle Value:'), product.bundle.value?.formatted || 'N/A']);
-      bundleTable.push([chalk.gray('Savings:'), `${product.bundle.savings?.percentage || '0%'} (${product.bundle.savings?.amount?.formatted || '$0'})`]);
-      console.log(bundleTable.toString());
+    const store = await client.marketplace.getStore(slugOrId);
+    spinner.succeed(`Store: ${store.name}\n`);
+
+    printStoreBanner(store);
+
+    // Load store products
+    const prodSpinner = ora('Loading store products...').start();
+    const products = await client.marketplace.getStoreProducts(slugOrId, { per_page: 50 });
+    prodSpinner.succeed(`${products.length} product(s) in this store\n`);
+
+    if (products.length > 0) {
+      printProductsTable(products);
     }
-    
+
     const { action } = await inquirer.prompt([
       {
         type: 'list',
         name: 'action',
-        message: 'What would you like to do?',
+        message: 'What next?',
         choices: [
-          { name: '🌐 Open in Browser', value: 'browser' },
-          { name: '🔗 Copy Link', value: 'copy' },
-          { name: '◀️  Back', value: 'back' }
-        ]
-      }
+          ...(products.length > 0 ? [{ name: '📦 View a product', value: 'product' }] : []),
+          { name: '🌐 Open store in browser', value: 'browser' },
+          { name: '◀  Back',                  value: 'back' },
+        ],
+      },
     ]);
-    
+
     if (action === 'browser') {
-      await openBrowser(productUrl);
-    } else if (action === 'copy') {
-      console.log(chalk.green(`✓ Link: ${productUrl}`));
-    }
-    
-  } catch (error: any) {
-    spinner.fail('Failed to load product details');
-    console.log(chalk.red(error.message));
-  }
-}
-
-async function showTopProducts() {
-  const spinner = ora('Loading top products...').start();
-  
-  try {
-    if (client) {
-      const response = await client.products.list({ per_page: 20 });
-      const sorted = [...response.data].sort((a, b) => 
-        (b.rating?.average || 0) - (a.rating?.average || 0)
-      );
-      const topProducts = sorted.slice(0, 10);
-      
-      spinner.succeed('Top rated products\n');
-      
-      const table = new Table({
-        head: [chalk.cyan('#'), chalk.cyan('Name'), chalk.cyan('Price'), chalk.cyan('Rating'), chalk.cyan('Sales')],
-        colWidths: [4, 40, 15, 12, 10]
-      });
-      
-      topProducts.forEach((product, index) => {
-        table.push([
-          chalk.bold(`${index + 1}`),
-          product.name.slice(0, 38),
-          product.pricing?.current_price?.formatted || 'Free',
-          product.rating?.average ? `${product.rating.average} ★` : 'N/A',
-          product.sales_count?.toString() || '0'
-        ]);
-      });
-      
-      console.log(table.toString());
-      
-      const { viewDetails } = await inquirer.prompt([
+      await openBrowser(store.url || `https://chariow.com/store/${slugOrId}`);
+    } else if (action === 'product' && products.length > 0) {
+      const { pid } = await inquirer.prompt([
         {
-          type: 'confirm',
-          name: 'viewDetails',
-          message: 'View product details?',
-          default: false
-        }
+          type: 'list',
+          name: 'pid',
+          message: 'Select a product:',
+          pageSize: 15,
+          choices: products.map(p => ({
+            name: `${p.name}  ${C.success(p.pricing?.current_price?.formatted || 'Free')}`,
+            value: p.id,
+          })),
+        },
       ]);
-      
-      if (viewDetails && topProducts.length > 0) {
-        const { productId } = await inquirer.prompt([
-          {
-            type: 'list',
-            name: 'productId',
-            message: 'Select product:',
-            choices: topProducts.map(p => ({
-              name: `${p.name}`,
-              value: p.id
-            }))
-          }
-        ]);
-        
-        await showProductDetails(productId);
-      }
-    } else {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      spinner.succeed('Top rated products this week (Demo)\n');
-      
-      const table = new Table({
-        head: [chalk.cyan('#'), chalk.cyan('Product'), chalk.cyan('Price'), chalk.cyan('Rating'), chalk.cyan('Sales')],
-        colWidths: [4, 35, 12, 10, 10]
-      });
-      
-      const topProducts = [
-        { name: 'AI Coding Assistant Pro', price: '$29.99', rating: '4.9 ★', sales: '12.4K' },
-        { name: 'Cloud Deployment Toolkit', price: '$49.99', rating: '4.8 ★', sales: '8.2K' },
-        { name: 'DevOps Mastery Course', price: '$199.99', rating: '4.9 ★', sales: '5.7K' },
-      ];
-      
-      topProducts.forEach((product, index) => {
-        table.push([
-          chalk.bold(`${index + 1}`),
-          product.name,
-          chalk.green(product.price),
-          chalk.yellow(product.rating),
-          product.sales
-        ]);
-      });
-      
-      console.log(table.toString());
-      console.log(chalk.dim('\n💡 Tip: Configure API key for your real store data\n'));
+      await viewProduct(client, pid);
     }
-    
-  } catch (error: any) {
-    spinner.fail('Failed to load top products');
-    console.log(chalk.red(error.message));
+  } catch (err: any) {
+    spinner.fail('Failed to load store');
+    console.log(C.error(err.message));
   }
 }
 
-async function showTrending() {
-  const spinner = ora('Loading trending products...').start();
-  
+// ─── View product ─────────────────────────────────────────────────────────
+async function viewProduct(client: Chariow, id: string) {
+  const spinner = ora('Loading product...').start();
   try {
-    await new Promise(resolve => setTimeout(resolve, 600));
-    spinner.succeed('Trending products 🔥\n');
-    
+    const p = await client.products.get(id);
+    spinner.succeed();
+
+    console.log('\n' + C.bold.cyan('📦 PRODUCT DETAILS\n'));
+
+    const table = new Table({ colWidths: [22, 58] });
+    const r = (k: string, v: string) => table.push([C.text(k + ':'), v]);
+
+    r('Name',       C.bold(p.name));
+    r('ID',         C.dim(p.id));
+    r('Type',       p.type || '—');
+    r('Category',   p.category?.label || 'Uncategorized');
+    r('Status',     p.status === 'published' ? C.success('● Published') : C.warning('○ Draft'));
+    r('Price',      C.success(p.pricing?.current_price?.formatted || 'Free'));
+    r('Rating',     p.rating?.average ? C.warning(`${p.rating.average} ★`) + C.dim(` (${p.rating.count} reviews)`) : 'No ratings');
+    r('Sales',      String(p.sales_count ?? '—'));
+    r('URL',        C.primary(`https://app.chariow.com/products/${p.id}`));
+
+    console.log(table.toString());
+
+    if (p.description) {
+      const clean = p.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      console.log('\n' + C.cyan('Description:'));
+      console.log(C.text(clean.slice(0, 500)) + '\n');
+    }
+
+    const { open } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'open',
+        message: 'Open in browser?',
+        default: false,
+      },
+    ]);
+    if (open) await openBrowser(`https://app.chariow.com/products/${p.id}`);
+  } catch (err: any) {
+    spinner.fail('Failed to load product');
+    console.log(C.error(err.message));
+  }
+}
+
+// ─── Browse all products ──────────────────────────────────────────────────
+async function browseAllProducts(category?: string) {
+  const client = getClient();
+  if (!client) {
+    console.log(C.error('\nAPI key required. Run: chariow config --set <token>\n'));
+    return;
+  }
+
+  const spinner = ora('Loading products from Chariow marketplace...').start();
+
+  try {
+    const resp = await client.products.list({ per_page: 100, status: 'published' });
+    let products = resp.data;
+
+    if (category) {
+      products = products.filter(p =>
+        p.category?.label?.toLowerCase().includes(category.toLowerCase()) ||
+        p.category?.value?.toLowerCase().includes(category.toLowerCase())
+      );
+    }
+
+    if (products.length === 0) {
+      spinner.warn('No products found.');
+      return;
+    }
+
+    spinner.succeed(`Found ${products.length} product(s)${category ? ` in "${category}"` : ''}\n`);
+
+    printProductsTable(products.slice(0, 30));
+
+    const { viewOne } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'viewOne',
+        message: 'View product details?',
+        default: false,
+      },
+    ]);
+
+    if (viewOne) {
+      const { pid } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'pid',
+          message: 'Select product:',
+          pageSize: 15,
+          choices: products.slice(0, 30).map(p => ({
+            name: `${p.name}  ${C.success(p.pricing?.current_price?.formatted || 'Free')}`,
+            value: p.id,
+          })),
+        },
+      ]);
+      await viewProduct(client, pid);
+    }
+  } catch (err: any) {
+    spinner.fail('Failed to load products');
+    console.log(C.error(err.message));
+  }
+}
+
+// ─── Search stores ────────────────────────────────────────────────────────
+async function searchStores(term: string) {
+  const client = getClient();
+  if (!client) {
+    console.log(C.error('\nAPI key required. Run: chariow config --set <token>\n'));
+    return;
+  }
+  const spinner = ora(`Searching stores for "${term}"...`).start();
+  try {
+    const resp = await client.marketplace.listStores({ per_page: 50, search: term });
+    const stores = resp.data;
+
+    if (stores.length === 0) {
+      spinner.warn(`No stores found for "${term}".`);
+      return;
+    }
+
+    spinner.succeed(`Found ${stores.length} store(s) matching "${term}"\n`);
+
     const table = new Table({
-      head: [chalk.cyan('Product'), chalk.cyan('Price'), chalk.cyan('Trend'), chalk.cyan('Category')],
-      colWidths: [30, 12, 12, 20]
+      head: [C.cyan('Name'), C.cyan('Status'), C.cyan('Products'), C.cyan('URL')],
+      colWidths: [34, 12, 10, 36],
     });
-    
-    const trending = [
-      { name: 'AI Image Generator', price: '$14.99', trend: '🔥 +245%', category: 'AI Tools' },
-      { name: 'No-Code App Builder', price: '$89.99', trend: '📈 +189%', category: 'Development' },
-      { name: 'Cryptocurrency Tracker', price: '$24.99', trend: '🚀 +167%', category: 'Finance' },
-    ];
-    
-    trending.forEach(product => {
+
+    stores.forEach(s => {
       table.push([
-        product.name,
-        chalk.green(product.price),
-        chalk.red(product.trend),
-        product.category
+        C.bold(s.name.slice(0, 32)),
+        s.status === 'active' ? C.success('● Active') : C.warning(s.status || '—'),
+        C.accent(s.products_count != null ? String(s.products_count) : '—'),
+        C.text((s.url || '—').slice(0, 34)),
       ]);
     });
-    
+
     console.log(table.toString());
-    
-  } catch (error: any) {
-    spinner.fail('Failed to load trending');
+
+    const { pick } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'pick',
+        message: 'View a store?',
+        default: false,
+      },
+    ]);
+
+    if (pick) {
+      const { storeId } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'storeId',
+          message: 'Select store:',
+          pageSize: 12,
+          choices: stores.map(s => ({
+            name: s.name,
+            value: s.slug || s.id,
+          })),
+        },
+      ]);
+      await viewStore(storeId);
+    }
+  } catch (err: any) {
+    spinner.fail('Search failed');
+    console.log(C.error(err.message));
   }
 }
 
-async function browseCategories() {
-  const categories = [
-    'AI & Machine Learning', 'Web Development', 'Mobile Apps', 'DevOps & Cloud',
-    'Cybersecurity', 'Data Science', 'Design & UX', 'Marketing & SEO',
-    'E-commerce', 'Productivity', 'Gaming', 'Education', 'Technology'
-  ];
-  
+async function searchStoresInteractive() {
+  const { term } = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'term',
+      message: '🔍 Search stores by name:',
+      validate: (v: string) => v.trim().length > 0 ? true : 'Enter a search term',
+    },
+  ]);
+  await searchStores(term);
+}
+
+// ─── Top stores ───────────────────────────────────────────────────────────
+async function showTopStores() {
+  const client = getClient();
+  if (!client) {
+    console.log(C.error('\nAPI key required. Run: chariow config --set <token>\n'));
+    return;
+  }
+
+  const spinner = ora('Loading top stores...').start();
+
+  try {
+    const resp = await client.marketplace.listStores({ per_page: 50 });
+    const sorted = resp.data
+      .filter(s => s.status === 'active')
+      .sort((a, b) => (b.products_count ?? 0) - (a.products_count ?? 0))
+      .slice(0, 15);
+
+    spinner.succeed('Top stores on Chariow\n');
+
+    const table = new Table({
+      head: [C.cyan('#'), C.cyan('Store'), C.cyan('Products'), C.cyan('URL')],
+      colWidths: [4, 36, 12, 36],
+    });
+
+    sorted.forEach((s, i) => {
+      table.push([
+        C.warning.bold(String(i + 1)),
+        C.bold(s.name.slice(0, 34)),
+        C.success(s.products_count != null ? String(s.products_count) : '—'),
+        C.text((s.url || '—').slice(0, 34)),
+      ]);
+    });
+
+    console.log(table.toString());
+
+    const { pick } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'pick',
+        message: 'View a store?',
+        default: false,
+      },
+    ]);
+
+    if (pick && sorted.length > 0) {
+      const { storeId } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'storeId',
+          message: 'Select store:',
+          pageSize: 15,
+          choices: sorted.map(s => ({
+            name: s.name,
+            value: s.slug || s.id,
+          })),
+        },
+      ]);
+      await viewStore(storeId);
+    }
+  } catch (err: any) {
+    spinner.fail('Failed to load top stores');
+    console.log(C.error(err.message));
+  }
+}
+
+// ─── Browse by category ───────────────────────────────────────────────────
+async function browseByCategory() {
   const { category } = await inquirer.prompt([
     {
       type: 'list',
       name: 'category',
       message: 'Select category:',
-      choices: categories,
-      pageSize: 15
-    }
+      pageSize: 16,
+      choices: [
+        { name: '🤖 AI & Machine Learning', value: 'AI' },
+        { name: '🌐 Web Development',        value: 'Web' },
+        { name: '📱 Mobile Apps',             value: 'Mobile' },
+        { name: '☁️  DevOps & Cloud',         value: 'DevOps' },
+        { name: '🔒 Cybersecurity',           value: 'Security' },
+        { name: '📊 Data Science',            value: 'Data' },
+        { name: '🎨 Design & UX',             value: 'Design' },
+        { name: '📣 Marketing & SEO',          value: 'Marketing' },
+        { name: '🛒 E-commerce',              value: 'Commerce' },
+        { name: '⚡ Productivity',            value: 'Productivity' },
+        { name: '🎓 Education',               value: 'Education' },
+        { name: '🎮 Gaming',                  value: 'Gaming' },
+        { name: '💼 Business',                value: 'Business' },
+      ],
+    },
   ]);
-  
-  await browseCategory(category);
+  await browseAllProducts(category);
 }
 
-async function browseCategory(category: string) {
-  const spinner = ora(`Loading ${category} products...`).start();
-  
-  try {
-    if (client) {
-      const response = await client.products.list({ per_page: 50 });
-      const filtered = response.data.filter(p => 
-        p.category?.label?.toLowerCase().includes(category.toLowerCase()) ||
-        p.category?.value?.toLowerCase().includes(category.toLowerCase())
-      );
-      
-      spinner.succeed(`Found ${filtered.length} products in ${category}\n`);
-      
-      if (filtered.length === 0) {
-        console.log(chalk.dim('No products found in this category\n'));
-        return;
-      }
-      
-      const table = new Table({
-        head: [chalk.cyan('Name'), chalk.cyan('Type'), chalk.cyan('Category'), chalk.cyan('Price'), chalk.cyan('Rating')],
-        colWidths: [35, 12, 20, 12, 10]
-      });
-      
-      filtered.slice(0, 20).forEach(product => {
-        table.push([
-          product.name.slice(0, 33),
-          product.type || 'N/A',
-          product.category?.label || 'N/A',
-          product.pricing?.current_price?.formatted || 'Free',
-          product.rating?.average ? `${product.rating.average} ★` : 'N/A'
-        ]);
-      });
-      
-      console.log(table.toString());
-      
-      const { viewDetails } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'viewDetails',
-          message: 'View product details?',
-          default: false
-        }
-      ]);
-      
-      if (viewDetails && filtered.length > 0) {
-        const { productId } = await inquirer.prompt([
-          {
-            type: 'list',
-            name: 'productId',
-            message: 'Select product:',
-            choices: filtered.slice(0, 20).map(p => ({
-              name: `${p.name}`,
-              value: p.id
-            }))
-          }
-        ]);
-        
-        await showProductDetails(productId);
-      }
-    } else {
-      await new Promise(resolve => setTimeout(resolve, 700));
-      spinner.succeed(`Found 2 products in ${category} (Demo)\n`);
-      
-      const table = new Table({
-        head: [chalk.cyan('Name'), chalk.cyan('Type'), chalk.cyan('Category'), chalk.cyan('Price')],
-        colWidths: [35, 12, 20, 12]
-      });
-      
-      table.push(['Sample Product 1', 'digital', category, chalk.green('$19.99')]);
-      table.push(['Sample Product 2', 'digital', category, chalk.green('$29.99')]);
-      
-      console.log(table.toString());
-      console.log(chalk.dim('\n💡 Tip: Configure API key for real products\n'));
-    }
-    
-  } catch (error: any) {
-    spinner.fail('Failed to load category');
-    console.log(chalk.red(error.message));
-  }
-}
-
-async function showFeatured() {
-  const spinner = ora('Loading featured products...').start();
-  
-  try {
-    if (client) {
-      const response = await client.products.list({ per_page: 20 });
-      const featured = response.data.slice(0, 5);
-      
-      spinner.succeed('Featured Products ✨\n');
-      
-      const table = new Table({
-        head: [chalk.cyan('#'), chalk.cyan('Name'), chalk.cyan('Price'), chalk.cyan('Rating')],
-        colWidths: [4, 50, 15, 12]
-      });
-      
-      featured.forEach((product, index) => {
-        table.push([
-          chalk.yellow(`${index + 1}`),
-          product.name.slice(0, 48),
-          chalk.green(product.pricing?.current_price?.formatted || 'Free'),
-          product.rating?.average ? `${product.rating.average} ★` : 'N/A'
-        ]);
-      });
-      
-      console.log(table.toString());
-      
-      const { viewDetails } = await inquirer.prompt([
-        {
-          type: 'confirm',
-          name: 'viewDetails',
-          message: 'View product details?',
-          default: false
-        }
-      ]);
-      
-      if (viewDetails && featured.length > 0) {
-        const { productId } = await inquirer.prompt([
-          {
-            type: 'list',
-            name: 'productId',
-            message: 'Select product:',
-            choices: featured.map(p => ({
-              name: `${p.name}`,
-              value: p.id
-            }))
-          }
-        ]);
-        
-        await showProductDetails(productId);
-      }
-    } else {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      spinner.succeed('Editor\'s Picks ✨\n');
-      
-      console.log(chalk.white('1. AI-Powered Code Assistant - ') + chalk.green('$39.99') + chalk.dim(' (Save 30%)'));
-      console.log(chalk.white('2. Complete Web3 Development Kit - ') + chalk.green('$129.99') + chalk.dim(' (Free updates)'));
-      console.log(chalk.white('3. DevOps Automation Suite - ') + chalk.green('$89.99') + chalk.dim(' (Popular)'));
-      console.log('');
-    }
-    
-  } catch (error: any) {
-    spinner.fail('Failed to load featured');
-  }
-}
-
-async function showRecent() {
-  const spinner = ora('Loading recently added...').start();
-  
-  try {
-    if (client) {
-      const response = await client.products.list({ per_page: 10 });
-      spinner.succeed('Recently added products\n');
-      
-      const table = new Table({
-        head: [chalk.cyan('Name'), chalk.cyan('Price'), chalk.cyan('Status'), chalk.cyan('Type')],
-        colWidths: [40, 15, 12, 15]
-      });
-      
-      response.data.slice(0, 10).forEach(product => {
-        table.push([
-          product.name.slice(0, 38),
-          chalk.green(product.pricing?.current_price?.formatted || 'Free'),
-          product.status === 'published' ? chalk.green('Published') : chalk.yellow('Draft'),
-          product.type || 'N/A'
-        ]);
-      });
-      
-      console.log(table.toString());
-    } else {
-      await new Promise(resolve => setTimeout(resolve, 400));
-      spinner.succeed('Recently added products (Demo)\n');
-      
-      console.log(`${chalk.green('🆕')} New Product Launch Template - ${chalk.green('$19.99')} ${chalk.dim('(2 hours ago)')}`);
-      console.log(`${chalk.green('🆕')} ChatGPT Integration Guide - ${chalk.green('$14.99')} ${chalk.dim('(5 hours ago)')}`);
-      console.log(`${chalk.green('🆕')} API Automation Toolkit - ${chalk.green('$49.99')} ${chalk.dim('(1 day ago)')}`);
-      console.log('');
-    }
-    
-  } catch (error: any) {
-    spinner.fail('Failed to load recent');
-  }
-}
-
-async function searchByPrice() {
+// ─── Browse by price ──────────────────────────────────────────────────────
+async function browseByPrice() {
   const { min, max } = await inquirer.prompt([
     {
       type: 'number',
       name: 'min',
       message: 'Minimum price ($):',
-      default: 0
+      default: 0,
     },
     {
       type: 'number',
       name: 'max',
       message: 'Maximum price ($):',
-      default: 100
-    }
+      default: 100,
+    },
   ]);
-  
-  const spinner = ora(`Searching products between $${min} - $${max}...`).start();
-  
+
+  const client = getClient();
+  if (!client) {
+    console.log(C.error('\nAPI key required.\n'));
+    return;
+  }
+
+  const spinner = ora(`Searching products $${min}–$${max}...`).start();
+
   try {
-    if (client) {
-      const response = await client.products.list({ per_page: 100 });
-      const filtered = response.data.filter(p => {
-        const price = p.pricing?.current_price?.value || 0;
-        return price >= min && price <= max;
-      });
-      
-      spinner.succeed(`Found ${filtered.length} products in your price range\n`);
-      
-      if (filtered.length === 0) {
-        console.log(chalk.dim('No products found in this price range\n'));
-      } else {
-        const table = new Table({
-          head: [chalk.cyan('Name'), chalk.cyan('Price'), chalk.cyan('Rating')],
-          colWidths: [45, 15, 12]
-        });
-        
-        filtered.slice(0, 20).forEach(product => {
-          table.push([
-            product.name.slice(0, 43),
-            chalk.green(product.pricing?.current_price?.formatted || 'Free'),
-            product.rating?.average ? `${product.rating.average} ★` : 'N/A'
-          ]);
-        });
-        
-        console.log(table.toString());
-      }
-    } else {
-      await new Promise(resolve => setTimeout(resolve, 600));
-      spinner.succeed(`Found 8 products in your price range (Demo)\n`);
-      
-      console.log(`${chalk.green('•')} Basic Plan - $${min + 9.99}`);
-      console.log(`${chalk.green('•')} Standard Package - $${min + 29.99}`);
-      console.log(`${chalk.green('•')} Premium Bundle - $${min + 59.99}`);
-      console.log('');
+    const resp = await client.products.list({ per_page: 100 });
+    const filtered = resp.data.filter(p => {
+      const v = p.pricing?.current_price?.value ?? 0;
+      return v >= min && v <= max;
+    });
+
+    if (filtered.length === 0) {
+      spinner.warn('No products found in this price range.');
+      return;
     }
-    
-  } catch (error: any) {
-    spinner.fail('Search failed');
+
+    spinner.succeed(`Found ${filtered.length} product(s) between $${min} and $${max}\n`);
+    printProductsTable(filtered.slice(0, 25));
+  } catch (err: any) {
+    spinner.fail('Failed to load products');
+    console.log(C.error(err.message));
   }
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────
+function printStoreBanner(store: MarketplaceStore) {
+  const line = (k: string, v: string) =>
+    `  ${C.cyan(k.padEnd(14))} ${v}`;
+
+  console.log(C.primary.bold('\n╔══════════════════════════════════════════════╗'));
+  console.log(C.primary.bold(`║  🏪  ${store.name.slice(0, 40).padEnd(40)}║`));
+  console.log(C.primary.bold('╚══════════════════════════════════════════════╝\n'));
+  console.log(line('Status:',  store.status === 'active' ? C.success('● Active') : C.warning(store.status || '—')));
+  console.log(line('URL:',     C.primary(store.url || '—')));
+  if (store.description) {
+    console.log(line('About:',  C.text(store.description.slice(0, 60) + (store.description.length > 60 ? '…' : ''))));
+  }
+  if (store.products_count != null) {
+    console.log(line('Products:', C.accent(String(store.products_count))));
+  }
+  console.log('');
+}
+
+function printProductsTable(products: (MarketplaceProduct | any)[]) {
+  const table = new Table({
+    head: [C.cyan('Name'), C.cyan('Type'), C.cyan('Category'), C.cyan('Price'), C.cyan('Rating')],
+    colWidths: [36, 10, 16, 16, 12],
+  });
+
+  products.forEach(p => {
+    table.push([
+      p.name.slice(0, 34),
+      C.text((p.type || '—').slice(0, 8)),
+      C.text((p.category?.label || '—').slice(0, 14)),
+      C.success(p.pricing?.current_price?.formatted || 'Free'),
+      p.rating?.average ? C.warning(`${p.rating.average} ★`) : C.dim('—'),
+    ]);
+  });
+
+  console.log(table.toString());
+  console.log('');
+}
+
 async function openBrowser(url: string) {
-  console.log(chalk.yellow(`\n🌐 Opening ${url} in your browser...\n`));
-  
+  console.log(C.warning(`\n🌐 Opening ${url}...\n`));
   try {
-    const platform = process.platform;
-    let command = '';
-    
-    if (platform === 'darwin') {
-      command = `open "${url}"`;
-    } else if (platform === 'win32') {
-      command = `start "${url}"`;
-    } else {
-      command = `xdg-open "${url}"`;
-    }
-    
-    await execAsync(command);
-    console.log(chalk.green('✓ Browser opened successfully!\n'));
-  } catch (error) {
-    console.log(chalk.yellow(`\nCopy this URL: ${url}\n`));
+    const cmd = process.platform === 'darwin' ? `open "${url}"` :
+                process.platform === 'win32'  ? `start "${url}"` :
+                `xdg-open "${url}"`;
+    await execAsync(cmd);
+    console.log(C.success('✓ Opened in browser\n'));
+  } catch {
+    console.log(C.text(`Copy this URL: ${url}\n`));
   }
 }
