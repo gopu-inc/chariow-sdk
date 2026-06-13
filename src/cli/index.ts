@@ -13,6 +13,7 @@ import { hooksCommand }     from './commands/hooks.js';
 import { dnsCommand }       from './commands/dns.js';
 import { payCommand }       from './commands/pay.js';
 import { funcCommand }      from './commands/func.js';
+import { serveCommand }     from './commands/serve.js';
 
 const VERSION = '2.2.0';
 
@@ -155,6 +156,17 @@ program
   .option('--port <n>', 'Port to listen on  (default: 4242)')
   .action(funcCommand);
 
+// ─── serve ───────────────────────────────────────────────────────────────────
+program
+  .command('serve')
+  .alias('s')
+  .description(chalk.hex('#10b981')('🌐 Start payment gateway + generate nginx reverse-proxy config'))
+  .option('--port <n>',     'Port to listen on  (default: 4242)')
+  .option('--domain <host>','Domain name for nginx config  e.g. pay.mystore.com')
+  .option('--ssl',          'Generate SSL/HTTPS nginx config  (requires Let\'s Encrypt)')
+  .option('--output <file>','Output filename for nginx config  (default: nginx-chariow.conf)')
+  .action(serveCommand);
+
 // ─── list ─────────────────────────────────────────────────────────────────────
 program
   .command('list')
@@ -210,6 +222,17 @@ function showCommands() {
       cmds: [
         ['func',              'Start local HTTP gateway on port 4242'],
         ['func --port <n>',   'Start on custom port'],
+      ],
+    },
+    {
+      title: 'SERVE  —  Gateway + nginx',
+      color: '#10b981',
+      cmds: [
+        ['serve',                        'Start gateway + generate nginx.conf  (port 4242)'],
+        ['serve --port <n>',             'Custom port'],
+        ['serve --domain pay.mysite.com','nginx config pour un domaine'],
+        ['serve --ssl --domain <host>',  'Config SSL / HTTPS (Let\'s Encrypt)'],
+        ['serve &',                      'Run in background (bash)'],
       ],
     },
     {
