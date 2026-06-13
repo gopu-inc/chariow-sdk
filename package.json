@@ -1,7 +1,7 @@
 {
   "name": "chariow-sdk",
-  "version": "2.1.3",
-  "description": "Chariow SDK - Enterprise Commerce Platform",
+  "version": "2.2.0",
+  "description": "Chariow SDK & CLI — Enterprise Commerce Platform (Products, Pay, Hooks, DNS, WebSocket, Func)",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -17,20 +17,52 @@
     },
     "./cli": {
       "import": "./dist/cli/index.js",
-      "require": "./dist/cli/index.js"
+      "types": "./dist/cli/index.d.ts"
+    },
+    "./products": {
+      "import": "./dist/modules/products.js",
+      "types": "./dist/modules/products.d.ts"
+    },
+    "./pay": {
+      "import": "./dist/modules/pay.js",
+      "types": "./dist/modules/pay.d.ts"
+    },
+    "./hooks": {
+      "import": "./dist/modules/hooks.js",
+      "types": "./dist/modules/hooks.d.ts"
+    },
+    "./dns": {
+      "import": "./dist/modules/dns.js",
+      "types": "./dist/modules/dns.d.ts"
+    },
+    "./sales": {
+      "import": "./dist/modules/sales.js",
+      "types": "./dist/modules/sales.d.ts"
+    },
+    "./store": {
+      "import": "./dist/modules/store.js",
+      "types": "./dist/modules/store.d.ts"
+    },
+    "./marketplace": {
+      "import": "./dist/modules/marketplace.js",
+      "types": "./dist/modules/marketplace.d.ts"
     }
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --project tsconfig.json",
     "build:watch": "tsc --watch",
-    "clean": "rm -rf dist",
+    "build:fresh": "npm run clean && npm run build",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "dev": "tsx src/cli/index.ts",
+    "start": "node dist/cli/index.js",
+    "type-check": "tsc --noEmit",
     "prepublishOnly": "npm run clean && npm run build",
     "postinstall": "chmod +x dist/cli/index.js 2>/dev/null || true",
-    "dev": "tsx src/cli/index.ts",
     "link:local": "npm link",
     "unlink:local": "npm unlink -g chariow-sdk"
   },
@@ -38,11 +70,24 @@
     "chariow",
     "ecommerce",
     "sdk",
+    "cli",
     "api",
-    "commerce"
+    "commerce",
+    "payments",
+    "checkout",
+    "webhooks",
+    "websocket",
+    "dns",
+    "marketplace",
+    "typescript",
+    "tui"
   ],
   "author": "Chariow",
   "license": "MIT",
+  "homepage": "https://chariow.com",
+  "bugs": {
+    "url": "https://github.com/chariow/chariow-sdk/issues"
+  },
   "dependencies": {
     "chalk": "^5.3.0",
     "cli-table3": "^0.6.5",

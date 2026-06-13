@@ -9,7 +9,13 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
+    "incremental": true,
+    "tsBuildInfoFile": "./tsconfig.tsbuildinfo",
     "strict": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -18,7 +24,8 @@
     "noEmit": false,
     "emitDeclarationOnly": false,
     "isolatedModules": true,
-    "moduleDetection": "force"
+    "moduleDetection": "force",
+    "verbatimModuleSyntax": false
   },
   "include": ["src/**/*"],
   "exclude": [
