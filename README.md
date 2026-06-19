@@ -1,4 +1,5 @@
-hariow SDK
+
+# 🚀 Chariow SDK
 
 <div align="center">
 
@@ -38,6 +39,7 @@ hariow SDK
 ```bash
 npm install chariow-sdk
 ```
+
 Yarn
 
 ```bash
@@ -66,364 +68,364 @@ const products = await client.products.list({ per_page: 10 });
 // Create a product
 const product = await client.products.create({
   name: 'Awesome Product',
-    description: 'The best product ever',
-      pricing: {
-          type: 'one_time',
-              current_price: {
-                    value: 29.99,
-                          currency: 'USD'
-                              }
-                                },
-                                  status: 'published'
-                                  });
-
-                                  // Process a payment
-                                  const payment = await client.pay.checkout({
-                                    items: [{ product_id: product.id, quantity: 1 }],
-                                      customer_email: 'customer@example.com',
-                                        currency: 'USD'
-                                        });
-
-                                        console.log(payment.checkout_url);
-                                        ```
+  description: 'The best product ever',
+  pricing: {
+    type: 'one_time',
+    current_price: {
+      value: 29.99,
+      currency: 'USD'
+    }
+  },
+  status: 'published'
+});
+
+// Process a payment
+const payment = await client.pay.checkout({
+  items: [{ product_id: product.id, quantity: 1 }],
+  customer_email: 'customer@example.com',
+  currency: 'USD'
+});
+
+console.log(payment.checkout_url);
+```
 
-                                        CLI
+CLI
 
-                                        ```bash
-                                        # Configure API key
-                                        chariow config --set your-api-key
+```bash
+# Configure API key
+chariow config --set your-api-key
 
-                                        # Interactive dashboard
-                                        chariow dashboard
+# Interactive dashboard
+chariow dashboard
 
-                                        # Manage products
-                                        chariow products --list
-                                        chariow products --create
-                                        chariow products --publish <id>
+# Manage products
+chariow products --list
+chariow products --create
+chariow products --publish <id>
 
-                                        # Process payments
-                                        chariow pay --checkout
-                                        chariow pay --buy https://chariow.com/store/myshop/products/my-product
+# Process payments
+chariow pay --checkout
+chariow pay --buy https://chariow.com/store/myshop/products/my-product
 
-                                        # Start payment gateway
-                                        chariow serve --port 4242
+# Start payment gateway
+chariow serve --port 4242
 
-                                        # Real-time WebSocket monitoring
-                                        chariow ws
-                                        ```
+# Real-time WebSocket monitoring
+chariow ws
+```
 
-                                        🔧 CLI Commands
+🔧 CLI Commands
 
-                                        Command Description
-                                        chariow dashboard Interactive TUI dashboard
-                                        chariow config --set <key> Set API key
-                                        chariow products --list List products
-                                        chariow products --create Create product
-                                        chariow pay --checkout Interactive checkout
-                                        chariow pay --buy <id> Buy a product
-                                        chariow explore Browse marketplace
-                                        chariow hooks --list List webhooks
-                                        chariow dns --list List domains
-                                        chariow ws WebSocket monitor
-                                        chariow serve Start payment gateway
-                                        chariow func Start local gateway
+Command Description
+chariow dashboard Interactive TUI dashboard
+chariow config --set <key> Set API key
+chariow products --list List products
+chariow products --create Create product
+chariow pay --checkout Interactive checkout
+chariow pay --buy <id> Buy a product
+chariow explore Browse marketplace
+chariow hooks --list List webhooks
+chariow dns --list List domains
+chariow ws WebSocket monitor
+chariow serve Start payment gateway
+chariow func Start local gateway
 
-                                        📚 Modules
+📚 Modules
 
-                                        Products API
+Products API
 
-                                        ```typescript
-                                        import { ProductsAPI } from 'chariow-sdk/products';
+```typescript
+import { ProductsAPI } from 'chariow-sdk/products';
 
-                                        const products = new ProductsAPI(client);
+const products = new ProductsAPI(client);
 
-                                        // List with pagination
-                                        await products.list({ per_page: 20, status: 'published' });
+// List with pagination
+await products.list({ per_page: 20, status: 'published' });
 
-                                        // Search
-                                        await products.search('awesome');
+// Search
+await products.search('awesome');
 
-                                        // Get by ID
-                                        await products.get('prod_abc123');
+// Get by ID
+await products.get('prod_abc123');
 
-                                        // Update
-                                        await products.update('prod_abc123', { name: 'New Name' });
+// Update
+await products.update('prod_abc123', { name: 'New Name' });
 
-                                        // Delete
-                                        await products.delete('prod_abc123');
-                                        ```
+// Delete
+await products.delete('prod_abc123');
+```
 
-                                        Payment API (Chariow Pay)
+Payment API (Chariow Pay)
 
-                                        ```typescript
-                                        import { PayAPI } from 'chariow-sdk/pay';
+```typescript
+import { PayAPI } from 'chariow-sdk/pay';
 
-                                        const pay = new PayAPI(client);
+const pay = new PayAPI(client);
 
-                                        // Create checkout
-                                        const payment = await pay.checkout({
-                                          items: [{ product_id: 'prod_abc123', quantity: 2 }],
-                                            customer_email: 'buyer@example.com',
-                                              customer_name: 'John Doe',
-                                                currency: 'USD',
-                                                  payment_method: { type: 'card' },
-                                                    success_url: 'https://myshop.com/success',
-                                                      cancel_url: 'https://myshop.com/cancel'
-                                                      });
+// Create checkout
+const payment = await pay.checkout({
+  items: [{ product_id: 'prod_abc123', quantity: 2 }],
+  customer_email: 'buyer@example.com',
+  customer_name: 'John Doe',
+  currency: 'USD',
+  payment_method: { type: 'card' },
+  success_url: 'https://myshop.com/success',
+  cancel_url: 'https://myshop.com/cancel'
+});
 
-                                                      // Get payment
-                                                      await pay.get('pay_xyz789');
+// Get payment
+await pay.get('pay_xyz789');
 
-                                                      // List payments
-                                                      await pay.list({ status: 'succeeded', per_page: 20 });
+// List payments
+await pay.list({ status: 'succeeded', per_page: 20 });
 
-                                                      // Refund
-                                                      await pay.refund('pay_xyz789', { reason: 'Customer request' });
-                                                      ```
+// Refund
+await pay.refund('pay_xyz789', { reason: 'Customer request' });
+```
 
-                                                      Marketplace
+Marketplace
 
-                                                      ```typescript
-                                                      import { MarketplaceAPI } from 'chariow-sdk/marketplace';
+```typescript
+import { MarketplaceAPI } from 'chariow-sdk/marketplace';
 
-                                                      const marketplace = new MarketplaceAPI(client);
+const marketplace = new MarketplaceAPI(client);
 
-                                                      // List stores
-                                                      const stores = await marketplace.listStores({ search: 'tech' });
+// List stores
+const stores = await marketplace.listStores({ search: 'tech' });
 
-                                                      // Get store
-                                                      const store = await marketplace.getStore('my-store');
+// Get store
+const store = await marketplace.getStore('my-store');
 
-                                                      // Get store products
-                                                      const products = await marketplace.getStoreProducts('my-store');
-                                                      ```
+// Get store products
+const products = await marketplace.getStoreProducts('my-store');
+```
 
-                                                      Webhooks
+Webhooks
 
-                                                      ```typescript
-                                                      import { HooksAPI } from 'chariow-sdk/hooks';
+```typescript
+import { HooksAPI } from 'chariow-sdk/hooks';
 
-                                                      const hooks = new HooksAPI(client);
+const hooks = new HooksAPI(client);
 
-                                                      // Create webhook
-                                                      await hooks.create({
-                                                        url: 'https://myserver.com/webhook',
-                                                          events: ['sale.created', 'payment.succeeded'],
-                                                            secret: 'your-webhook-secret'
-                                                            });
+// Create webhook
+await hooks.create({
+  url: 'https://myserver.com/webhook',
+  events: ['sale.created', 'payment.succeeded'],
+  secret: 'your-webhook-secret'
+});
 
-                                                            // List webhooks
-                                                            await hooks.list();
+// List webhooks
+await hooks.list();
 
-                                                            // Test webhook
-                                                            await hooks.test('wh_abc123', 'sale.created');
+// Test webhook
+await hooks.test('wh_abc123', 'sale.created');
 
-                                                            // Get deliveries
-                                                            await hooks.deliveries('wh_abc123');
-                                                            ```
+// Get deliveries
+await hooks.deliveries('wh_abc123');
+```
 
-                                                            DNS / Domains
+DNS / Domains
 
-                                                            ```typescript
-                                                            import { DnsAPI } from 'chariow-sdk/dns';
+```typescript
+import { DnsAPI } from 'chariow-sdk/dns';
 
-                                                            const dns = new DnsAPI(client);
+const dns = new DnsAPI(client);
 
-                                                            // Add domain
-                                                            await dns.add({ domain: 'myshop.com' });
+// Add domain
+await dns.add({ domain: 'myshop.com' });
 
-                                                            // List domains
-                                                            await dns.list();
+// List domains
+await dns.list();
 
-                                                            // Verify domain
-                                                            await dns.verify('dom_abc123');
+// Verify domain
+await dns.verify('dom_abc123');
 
-                                                            // Set default domain
-                                                            await dns.setDefault('dom_abc123');
-                                                            ```
+// Set default domain
+await dns.setDefault('dom_abc123');
+```
 
-                                                            WebSocket
+WebSocket
 
-                                                            ```typescript
-                                                            import { ChariowWebSocket } from 'chariow-sdk/websocket';
+```typescript
+import { ChariowWebSocket } from 'chariow-sdk/websocket';
 
-                                                            const ws = new ChariowWebSocket('your-api-key');
+const ws = new ChariowWebSocket('your-api-key');
 
-                                                            // Connect
-                                                            await ws.connect();
+// Connect
+await ws.connect();
 
-                                                            // Subscribe to events
-                                                            await ws.subscribeToStore();
-                                                            await ws.subscribeToProduct('prod_abc123');
+// Subscribe to events
+await ws.subscribeToStore();
+await ws.subscribeToProduct('prod_abc123');
 
-                                                            // Listen for events
-                                                            ws.on('new_sale', (sale) => {
-                                                              console.log(`New sale: ${sale.amount} ${sale.currency}`);
-                                                              });
+// Listen for events
+ws.on('new_sale', (sale) => {
+  console.log(`New sale: ${sale.amount} ${sale.currency}`);
+});
 
-                                                              ws.on('product_updated', (product) => {
-                                                                console.log(`Product updated: ${product.name}`);
-                                                                });
+ws.on('product_updated', (product) => {
+  console.log(`Product updated: ${product.name}`);
+});
 
-                                                                ws.on('notification', (notification) => {
-                                                                  console.log(`Notification: ${notification.message}`);
-                                                                  });
+ws.on('notification', (notification) => {
+  console.log(`Notification: ${notification.message}`);
+});
 
-                                                                  // Search products in real-time
-                                                                  const results = await ws.searchProducts({
-                                                                    term: 'awesome',
-                                                                      minPrice: 10,
-                                                                        maxPrice: 50,
-                                                                          sortBy: 'rating'
-                                                                          });
-                                                                          ```
+// Search products in real-time
+const results = await ws.searchProducts({
+  term: 'awesome',
+  minPrice: 10,
+  maxPrice: 50,
+  sortBy: 'rating'
+});
+```
 
-                                                                          🌐 Payment Gateway (Stripe-compatible)
+🌐 Payment Gateway (Stripe-compatible)
 
-                                                                          ```bash
-                                                                          # Start the gateway
-                                                                          chariow serve --port 4242
+```bash
+# Start the gateway
+chariow serve --port 4242
 
-                                                                          # Generate nginx config with SSL
-                                                                          chariow serve --ssl --domain pay.myshop.com
-                                                                          ```
+# Generate nginx config with SSL
+chariow serve --ssl --domain pay.myshop.com
+```
 
-                                                                          Endpoints
+Endpoints
 
-                                                                          Method Endpoint Description
-                                                                          POST /v1/payment_intents Create payment intent
-                                                                          GET /v1/payment_intents/:id Get payment intent
-                                                                          POST /v1/payment_intents/:id/confirm Confirm payment
-                                                                          POST /v1/payment_intents/:id/cancel Cancel payment
-                                                                          POST /v1/charges Create charge
-                                                                          GET /v1/charges List charges
-                                                                          POST /v1/refunds Create refund
-                                                                          POST /v1/customers Create customer
-                                                                          GET /v1/balance Get balance
-                                                                          GET /v1/products List products
+Method Endpoint Description
+POST /v1/payment_intents Create payment intent
+GET /v1/payment_intents/:id Get payment intent
+POST /v1/payment_intents/:id/confirm Confirm payment
+POST /v1/payment_intents/:id/cancel Cancel payment
+POST /v1/charges Create charge
+GET /v1/charges List charges
+POST /v1/refunds Create refund
+POST /v1/customers Create customer
+GET /v1/balance Get balance
+GET /v1/products List products
 
-                                                                          Example with curl
+Example with curl
 
-                                                                          ```bash
-                                                                          # Create payment intent
-                                                                          curl -X POST http://localhost:4242/v1/payment_intents \
-                                                                            -H "Authorization: Bearer your-api-key" \
-                                                                              -H "Content-Type: application/json" \
-                                                                                -d '{
-                                                                                    "amount": 5000,
-                                                                                        "currency": "usd",
-                                                                                            "customer_email": "user@example.com",
-                                                                                                "items": [{"product_id": "prod_abc123", "quantity": 1}]
-                                                                                                  }'
+```bash
+# Create payment intent
+curl -X POST http://localhost:4242/v1/payment_intents \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 5000,
+    "currency": "usd",
+    "customer_email": "user@example.com",
+    "items": [{"product_id": "prod_abc123", "quantity": 1}]
+  }'
 
-                                                                                                  # Process charge
-                                                                                                  curl -X POST http://localhost:4242/v1/charges \
-                                                                                                    -H "Authorization: Bearer your-api-key" \
-                                                                                                      -H "Content-Type: application/json" \
-                                                                                                        -d '{
-                                                                                                            "amount": 2999,
-                                                                                                                "currency": "usd",
-                                                                                                                    "product_id": "prod_abc123",
-                                                                                                                        "customer_email": "buyer@example.com"
-                                                                                                                          }'
-                                                                                                                          ```
+# Process charge
+curl -X POST http://localhost:4242/v1/charges \
+  -H "Authorization: Bearer your-api-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 2999,
+    "currency": "usd",
+    "product_id": "prod_abc123",
+    "customer_email": "buyer@example.com"
+  }'
+```
 
-                                                                                                                          🧪 Testing
+🧪 Testing
 
-                                                                                                                          ```bash
-                                                                                                                          # Run all tests
-                                                                                                                          npm test
+```bash
+# Run all tests
+npm test
 
-                                                                                                                          # Run unit tests
-                                                                                                                          npm run test:unit
+# Run unit tests
+npm run test:unit
 
-                                                                                                                          # Run integration tests
-                                                                                                                          npm run test:integration
+# Run integration tests
+npm run test:integration
 
-                                                                                                                          # Run tests with coverage
-                                                                                                                          npm run test:coverage
+# Run tests with coverage
+npm run test:coverage
 
-                                                                                                                          # Run tests in watch mode
-                                                                                                                          npm run test:watch
-                                                                                                                          ```
+# Run tests in watch mode
+npm run test:watch
+```
 
-                                                                                                                          📊 Test Results
+📊 Test Results
 
-                                                                                                                          ```bash
-                                                                                                                          ✅ 141 tests passed
-                                                                                                                          ✅ 31 test suites
-                                                                                                                          ⏱️  3.63 seconds
-                                                                                                                          ```
+```bash
+✅ 141 tests passed
+✅ 31 test suites
+⏱️  3.63 seconds
+```
 
-                                                                                                                          🛠️ Development
+🛠️ Development
 
-                                                                                                                          ```bash
-                                                                                                                          # Clone repository
-                                                                                                                          git clone git@github.com:gopu-inc/chariow-sdk.git
-                                                                                                                          cd chariow-sdk
+```bash
+# Clone repository
+git clone git@github.com:gopu-inc/chariow-sdk.git
+cd chariow-sdk
 
-                                                                                                                          # Install dependencies
-                                                                                                                          npm install
+# Install dependencies
+npm install
 
-                                                                                                                          # Build
-                                                                                                                          npm run build
+# Build
+npm run build
 
-                                                                                                                          # Development mode
-                                                                                                                          npm run dev
+# Development mode
+npm run dev
 
-                                                                                                                          # Type check
-                                                                                                                          npm run type-check
+# Type check
+npm run type-check
 
-                                                                                                                          # Link locally
-                                                                                                                          npm run link:local
-                                                                                                                          ```
+# Link locally
+npm run link:local
+```
 
-                                                                                                                          📖 Examples
+📖 Examples
 
-                                                                                                                          Check out the examples directory for complete usage examples:
+Check out the examples directory for complete usage examples:
 
-                                                                                                                          · Basic Product Management
-                                                                                                                          · Payment Processing
-                                                                                                                          · Webhook Setup
-                                                                                                                          · Marketplace Integration
-                                                                                                                          · WebSocket Monitoring
-                                                                                                                          · Full E-commerce Flow
+· Basic Product Management
+· Payment Processing
+· Webhook Setup
+· Marketplace Integration
+· WebSocket Monitoring
+· Full E-commerce Flow
 
-                                                                                                                          🤝 Contributing
+🤝 Contributing
 
-                                                                                                                          We welcome contributions! Please see our Contributing Guide.
+We welcome contributions! Please see our Contributing Guide.
 
-                                                                                                                          1. Fork the repository
-                                                                                                                          2. Create your feature branch (git checkout -b feature/amazing-feature)
-                                                                                                                          3. Commit your changes (git commit -m 'Add amazing feature')
-                                                                                                                          4. Push to the branch (git push origin feature/amazing-feature)
-                                                                                                                          5. Open a Pull Request
+1. Fork the repository
+2. Create your feature branch (git checkout -b feature/amazing-feature)
+3. Commit your changes (git commit -m 'Add amazing feature')
+4. Push to the branch (git push origin feature/amazing-feature)
+5. Open a Pull Request
 
-                                                                                                                          📝 License
+📝 License
 
-                                                                                                                          This project is licensed under the MIT License — see the LICENSE file for details.
+This project is licensed under the MIT License — see the LICENSE file for details.
 
-                                                                                                                          🙏 Acknowledgments
+🙏 Acknowledgments
 
-                                                                                                                          · Built with TypeScript
-                                                                                                                          · Powered by Chariow Platform
-                                                                                                                          · CLI with Commander.js
-                                                                                                                          · TUI with Chalk + Inquirer
+· Built with TypeScript
+· Powered by Chariow Platform
+· CLI with Commander.js
+· TUI with Chalk + Inquirer
 
-                                                                                                                          📫 Contact & Support
+📫 Contact & Support
 
-                                                                                                                          · Documentation: docs.chariow.com
-                                                                                                                          · API Reference: docs.chariow.com/api
-                                                                                                                          · Issues: GitHub Issues
-                                                                                                                          · Discord: Chariow Community
-                                                                                                                          · Twitter: @Chariow
+· Documentation: docs.chariow.com
+· API Reference: docs.chariow.com/api
+· Issues: GitHub Issues
+· Discord: Chariow Community
+· Twitter: @Chariow
 
-                                                                                                                          ---
+---
 
-                                                                                                                          <div align="center">
+<div align="center">
 
-                                                                                                                          Built with ❤️ by the Chariow Team
+Built with ❤️ by the Chariow Team
 
-                                                                                                                          ⭐ Star us on GitHub — it helps!
+⭐ Star us on GitHub — it helps!
 
-                                                                                                                          </div>
+</div>
