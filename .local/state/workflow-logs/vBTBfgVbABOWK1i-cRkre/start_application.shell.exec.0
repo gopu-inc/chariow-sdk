@@ -1,0 +1,50 @@
+
+> chariow-sdk@2.1.3 build
+> tsc
+
+[1G[0K[1G[0K⠙[1G[0K[38;2;99;102;241m[39m
+[38;2;99;102;241m╔════════════════════════════════════════════════════════════════════════════╗[39m
+[38;2;99;102;241m║                                                                            ║[39m
+[38;2;99;102;241m║     ██████╗██╗  ██╗ █████╗ ██████╗ ██╗ ██████╗ ██╗    ██╗               ║[39m
+[38;2;99;102;241m║    ██╔════╝██║  ██║██╔══██╗██╔══██╗██║██╔═══██╗██║    ██║               ║[39m
+[38;2;99;102;241m║    ██║     ███████║███████║██████╔╝██║██║   ██║██║ █╗ ██║               ║[39m
+[38;2;99;102;241m║    ██║     ██╔══██║██╔══██║██╔══██╗██║██║   ██║██║███╗██║               ║[39m
+[38;2;99;102;241m║    ╚██████╗██║  ██║██║  ██║██║  ██║██║╚██████╔╝╚███╔███╔╝               ║[39m
+[38;2;99;102;241m║     ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝  ╚══╝╚══╝                ║[39m
+[38;2;99;102;241m║                                                                            ║[39m
+[38;2;99;102;241m║              Enterprise Commerce CLI  [39m[38;2;148;163;184mv2.1.3[39m[38;2;99;102;241m                         ║[39m
+[38;2;99;102;241m║              Manage • Sell • Grow • Analyse • Explore                     ║[39m
+[38;2;99;102;241m║                                                                            ║[39m
+[38;2;99;102;241m╚════════════════════════════════════════════════════════════════════════════╝[39m
+[38;2;99;102;241m[39m
+[38;2;99;102;241m[1m[22m[39m
+[38;2;99;102;241m[1m📋 AVAILABLE COMMANDS[22m[39m
+[38;2;99;102;241m[1m[22m[39m
+  [38;2;16;185;129m📊 dashboard, d      [39m [38;2;148;163;184mInteractive TUI  (Products · Sales · Store)[39m
+  [38;2;59;130;246m📦 products          [39m [38;2;148;163;184mManage products  (list, get, search, create, publish, delete)[39m
+  [38;2;16;185;129m🛒 sales             [39m [38;2;148;163;184mSales & orders  (list, get, stats)[39m
+  [38;2;139;92;246m🏪 store             [39m [38;2;148;163;184mStore information & appearance[39m
+  [38;2;139;92;246m🔍 explore           [39m [38;2;148;163;184mBrowse marketplace  (all stores, products, search)[39m
+  [38;2;245;158;11m🔧 config            [39m [38;2;148;163;184mManage API key  (set, get, remove)[39m
+  [38;2;148;163;184m❓ help              [39m [38;2;148;163;184mShow help information[39m
+
+[38;2;99;102;241m[1m  PRODUCTS QUICK REFERENCE[22m[39m
+[38;2;99;102;241m[1m[22m[39m
+  [38;2;59;130;246mchariow products --list                     [39m [38;2;148;163;184mList all your products[39m
+  [38;2;59;130;246mchariow products --create                   [39m [38;2;148;163;184mCreate a new product (interactive form)[39m
+  [38;2;59;130;246mchariow products --publish <id>             [39m [38;2;148;163;184mPublish a product immediately[39m
+  [38;2;59;130;246mchariow products --unpublish <id>           [39m [38;2;148;163;184mMove a product back to draft[39m
+  [38;2;59;130;246mchariow products --delete <id>              [39m [38;2;148;163;184mDelete a product[39m
+  [38;2;59;130;246mchariow products --search <term>            [39m [38;2;148;163;184mSearch your products[39m
+  [38;2;59;130;246mchariow products --stats                    [39m [38;2;148;163;184mView product statistics[39m
+
+[38;2;99;102;241m[1m  EXPLORE QUICK REFERENCE[22m[39m
+[38;2;99;102;241m[1m[22m[39m
+  [38;2;139;92;246mchariow explore                             [39m [38;2;148;163;184mInteractive marketplace browser[39m
+  [38;2;139;92;246mchariow explore --search <name>             [39m [38;2;148;163;184mSearch stores by name[39m
+  [38;2;139;92;246mchariow explore --store <slug>              [39m [38;2;148;163;184mView a specific store[39m
+  [38;2;139;92;246mchariow explore --top                       [39m [38;2;148;163;184mTop stores by product count[39m
+  [38;2;139;92;246mchariow explore --products                  [39m [38;2;148;163;184mBrowse all published products[39m
+[38;2;148;163;184m[39m
+[38;2;148;163;184m💡 Tip: chariow <command> --help  for per-command options[39m
+[38;2;148;163;184m[39m
