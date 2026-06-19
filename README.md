@@ -5,7 +5,6 @@
 
 ![Chariow SDK](https://img.shields.io/badge/Chariow-SDK-6366f1?style=for-the-badge&logo=typescript&logoColor=white)
 ![Version](https://img.shields.io/npm/v/chariow-sdk?color=6366f1&label=Version&style=flat-square)
-![Tests](https://img.shields.io/github/actions/workflow/status/gopu-inc/chariow-sdk/test.yml?label=Tests&style=flat-square)
 ![Coverage](https://img.shields.io/codecov/c/github/gopu-inc/chariow-sdk?style=flat-square)
 ![License](https://img.shields.io/npm/l/chariow-sdk?color=6366f1&style=flat-square)
 ![Downloads](https://img.shields.io/npm/dt/chariow-sdk?color=6366f1&style=flat-square)
