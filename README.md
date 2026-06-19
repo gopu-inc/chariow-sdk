@@ -1,18 +1,18 @@
-
-# Chariow SDK & CLI
+hariow SDK
 
 <div align="center">
 
-![Chariow Banner](.github/33c8d49bc3a72ca18587b84083d3bb9f.jpg)
+![Chariow SDK](https://img.shields.io/badge/Chariow-SDK-6366f1?style=for-the-badge&logo=typescript&logoColor=white)
+![Version](https://img.shields.io/npm/v/chariow-sdk?color=6366f1&label=Version&style=flat-square)
+![Tests](https://img.shields.io/github/actions/workflow/status/gopu-inc/chariow-sdk/test.yml?label=Tests&style=flat-square)
+![Coverage](https://img.shields.io/codecov/c/github/gopu-inc/chariow-sdk?style=flat-square)
+![License](https://img.shields.io/npm/l/chariow-sdk?color=6366f1&style=flat-square)
+![Downloads](https://img.shields.io/npm/dt/chariow-sdk?color=6366f1&style=flat-square)
+![Node](https://img.shields.io/node/v/chariow-sdk?color=6366f1&style=flat-square)
 
-**Official Node.js & TypeScript SDK for the Chariow API**
+**Enterprise Commerce Platform — SDK & CLI**
 
-Build powerful e-commerce applications with Chariow using a modern, fully typed SDK and a powerful CLI tool.
-
-
-[![npm version](https://badge.fury.io/js/chariow-sdk.svg?icon=si%3Anpm)](https://badge.fury.io/js/chariow-sdk)
-[![npm version](https://badge.fury.io/js/typescript.svg)](https://badge.fury.io/js/typescript)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[Documentation](https://docs.chariow.com) · [API Reference](https://docs.chariow.com/api) · [Examples](https://github.com/gopu-inc/chariow-sdk/tree/main/examples)
 
 </div>
 
@@ -20,585 +20,410 @@ Build powerful e-commerce applications with Chariow using a modern, fully typed 
 
 ## ✨ Features
 
-### SDK Features
-- 🚀 **Full TypeScript support** with complete type definitions
-- 📦 **Modern ESM compatible** module
-- 🔌 **Simple API client** with intuitive methods
-- 🛍️ **Complete Products API** (list, get, create, update, delete, search)
-- 🧹 **HTML cleaning utilities** for product descriptions
-- 🎨 **Product models** with convenient getters
-- ⚡ **Lightweight and fast** with zero unnecessary dependencies
-- 🌐 **Works with Node.js 18+**, Bun, and Deno
-
-### CLI Features
-- 🎯 **Interactive TUI mode** like GitHub Copilot CLI
-- 🔐 **Multiple authentication methods** (browser, token, guest)
-- 🔍 **Explore millions of products** on Chariow marketplace
-- 📊 **Store analytics and statistics**
-- 🛒 **Product management** (create, edit, delete, list)
-- 🎨 **Beautiful terminal UI** with colors and tables
-- 🌐 **Open products directly in browser**
-- ⚙️ **Persistent configuration** stored locally
-
----
+- 🛒 **Products API** — Create, update, publish products
+- 💳 **Chariow Pay** — Payments & checkout (Stripe-compatible)
+- 🔌 **Webhooks** — Manage webhooks with events
+- 🌐 **DNS** — Custom domains & SSL management
+- 🏪 **Marketplace** — Browse stores and products
+- 📊 **Sales** — Orders and revenue tracking
+- 🔌 **WebSocket** — Real-time events & notifications
+- 🖥️ **CLI** — Interactive terminal dashboard
+- ⚡ **Func Gateway** — Stripe-compatible payment gateway
+- 📦 **TypeScript** — Full type definitions included
 
 ## 📦 Installation
 
-### Install as SDK (for developers)
+### NPM
 
 ```bash
 npm install chariow-sdk
 ```
+Yarn
 
-Install CLI globally
+```bash
+yarn add chariow-sdk
+```
+
+Global CLI
 
 ```bash
 npm install -g chariow-sdk
 ```
 
-Use with npx (no installation required)
-
-```bash
-npx chariow --help
-```
-
----
-
 🚀 Quick Start
 
-SDK Usage
+Node.js / TypeScript
 
 ```typescript
 import { Chariow } from 'chariow-sdk';
 
-// Initialize the client
-const api = new Chariow(process.env.CHARIOW_API_KEY!);
+// Initialize the SDK
+const client = new Chariow('your-api-key');
 
 // List products
-const products = await api.products.list();
-console.log(products.data);
-
-// Get single product
-const product = await api.products.get('prd_xxx');
-console.log(product.name, product.price);
+const products = await client.products.list({ per_page: 10 });
 
 // Create a product
-const newProduct = await api.products.create({
-  name: 'My Awesome Product',
-  description: 'This is a great product...',
-  pricing: {
-    type: 'one_time',
-    current_price: {
-      amount: 2999, // $29.99
-      currency: 'USD'
-    }
-  },
-  status: 'published'
-});
+const product = await client.products.create({
+  name: 'Awesome Product',
+    description: 'The best product ever',
+      pricing: {
+          type: 'one_time',
+              current_price: {
+                    value: 29.99,
+                          currency: 'USD'
+                              }
+                                },
+                                  status: 'published'
+                                  });
+
+                                  // Process a payment
+                                  const payment = await client.pay.checkout({
+                                    items: [{ product_id: product.id, quantity: 1 }],
+                                      customer_email: 'customer@example.com',
+                                        currency: 'USD'
+                                        });
+
+                                        console.log(payment.checkout_url);
+                                        ```
+
+                                        CLI
 
-// Search products
-const results = await api.products.search('awesome');
-console.log(results);
+                                        ```bash
+                                        # Configure API key
+                                        chariow config --set your-api-key
 
-// Update product
-await api.products.update('prd_xxx', {
-  name: 'Updated Name'
-});
+                                        # Interactive dashboard
+                                        chariow dashboard
 
-// Delete product
-await api.products.delete('prd_xxx');
-```
+                                        # Manage products
+                                        chariow products --list
+                                        chariow products --create
+                                        chariow products --publish <id>
 
-CLI Usage
+                                        # Process payments
+                                        chariow pay --checkout
+                                        chariow pay --buy https://chariow.com/store/myshop/products/my-product
 
-```bash
-# Interactive mode (like Copilot CLI)
-chariow
-# or
-chariow interactive
+                                        # Start payment gateway
+                                        chariow serve --port 4242
 
-# Configure your API key
-chariow config --set "sk_your_api_key_here"
-chariow config --get
+                                        # Real-time WebSocket monitoring
+                                        chariow ws
+                                        ```
 
-# Manage products
-chariow products --list
-chariow products --get prd_xxx
-chariow products --search "phone"
-chariow products --create
+                                        🔧 CLI Commands
 
-# Explore marketplace
-chariow explore --search "AI"
-chariow explore --top
-chariow explore --category "Development"
-```
+                                        Command Description
+                                        chariow dashboard Interactive TUI dashboard
+                                        chariow config --set <key> Set API key
+                                        chariow products --list List products
+                                        chariow products --create Create product
+                                        chariow pay --checkout Interactive checkout
+                                        chariow pay --buy <id> Buy a product
+                                        chariow explore Browse marketplace
+                                        chariow hooks --list List webhooks
+                                        chariow dns --list List domains
+                                        chariow ws WebSocket monitor
+                                        chariow serve Start payment gateway
+                                        chariow func Start local gateway
 
----
+                                        📚 Modules
 
-🔐 Authentication
+                                        Products API
 
-Get your API key
+                                        ```typescript
+                                        import { ProductsAPI } from 'chariow-sdk/products';
 
-1. Sign up at Chariow
-2. Go to Dashboard → Settings → API Keys
-3. Generate a new API key
-4. Copy your key (starts with sk_)
+                                        const products = new ProductsAPI(client);
 
-Configure CLI
+                                        // List with pagination
+                                        await products.list({ per_page: 20, status: 'published' });
 
-```bash
-# Set your API key
-chariow config --set "sk_xxxxx"
+                                        // Search
+                                        await products.search('awesome');
 
-# View current config
-chariow config --get
+                                        // Get by ID
+                                        await products.get('prod_abc123');
 
-# Remove config
-chariow config --remove
-```
+                                        // Update
+                                        await products.update('prod_abc123', { name: 'New Name' });
 
-Use in code
+                                        // Delete
+                                        await products.delete('prod_abc123');
+                                        ```
 
-```typescript
-// Environment variable
-const api = new Chariow(process.env.CHARIOW_API_KEY!);
+                                        Payment API (Chariow Pay)
 
-// Direct string
-const api = new Chariow('sk_xxxxx');
-```
+                                        ```typescript
+                                        import { PayAPI } from 'chariow-sdk/pay';
 
----
+                                        const pay = new PayAPI(client);
 
-📚 API Reference
+                                        // Create checkout
+                                        const payment = await pay.checkout({
+                                          items: [{ product_id: 'prod_abc123', quantity: 2 }],
+                                            customer_email: 'buyer@example.com',
+                                              customer_name: 'John Doe',
+                                                currency: 'USD',
+                                                  payment_method: { type: 'card' },
+                                                    success_url: 'https://myshop.com/success',
+                                                      cancel_url: 'https://myshop.com/cancel'
+                                                      });
 
-Products API
+                                                      // Get payment
+                                                      await pay.get('pay_xyz789');
 
-list(query?: ProductQuery): Promise<ProductsResponse>
+                                                      // List payments
+                                                      await pay.list({ status: 'succeeded', per_page: 20 });
 
-List all products with pagination.
+                                                      // Refund
+                                                      await pay.refund('pay_xyz789', { reason: 'Customer request' });
+                                                      ```
 
-```typescript
-const response = await api.products.list({
-  per_page: 20,
-  cursor: 'next_cursor',
-  status: 'published'
-});
+                                                      Marketplace
 
-console.log(response.data); // Array of products
-console.log(response.pagination); // Pagination info
-```
+                                                      ```typescript
+                                                      import { MarketplaceAPI } from 'chariow-sdk/marketplace';
 
-get(id: string): Promise<Product>
+                                                      const marketplace = new MarketplaceAPI(client);
 
-Get a single product by ID.
+                                                      // List stores
+                                                      const stores = await marketplace.listStores({ search: 'tech' });
 
-```typescript
-const product = await api.products.get('prd_xxx');
-console.log(product.name, product.price);
-```
+                                                      // Get store
+                                                      const store = await marketplace.getStore('my-store');
 
-create(body: unknown): Promise<Product>
+                                                      // Get store products
+                                                      const products = await marketplace.getStoreProducts('my-store');
+                                                      ```
 
-Create a new product.
+                                                      Webhooks
 
-```typescript
-const product = await api.products.create({
-  name: 'Product Name',
-  description: 'Description...',
-  pricing: {
-    type: 'one_time',
-    current_price: { amount: 1999, currency: 'USD' }
-  },
-  status: 'published'
-});
-```
+                                                      ```typescript
+                                                      import { HooksAPI } from 'chariow-sdk/hooks';
 
-update(id: string, body: unknown): Promise<Product>
+                                                      const hooks = new HooksAPI(client);
 
-Update an existing product.
+                                                      // Create webhook
+                                                      await hooks.create({
+                                                        url: 'https://myserver.com/webhook',
+                                                          events: ['sale.created', 'payment.succeeded'],
+                                                            secret: 'your-webhook-secret'
+                                                            });
 
-```typescript
-const updated = await api.products.update('prd_xxx', {
-  name: 'New Name',
-  status: 'draft'
-});
-```
+                                                            // List webhooks
+                                                            await hooks.list();
 
-delete(id: string): Promise<void>
+                                                            // Test webhook
+                                                            await hooks.test('wh_abc123', 'sale.created');
 
-Delete a product.
+                                                            // Get deliveries
+                                                            await hooks.deliveries('wh_abc123');
+                                                            ```
 
-```typescript
-await api.products.delete('prd_xxx');
-```
+                                                            DNS / Domains
 
-search(name: string): Promise<Product[]>
+                                                            ```typescript
+                                                            import { DnsAPI } from 'chariow-sdk/dns';
+
+                                                            const dns = new DnsAPI(client);
 
-Search products by name (client-side filtering).
+                                                            // Add domain
+                                                            await dns.add({ domain: 'myshop.com' });
 
-```typescript
-const results = await api.products.search('phone');
-results.forEach(p => console.log(p.name));
-```
+                                                            // List domains
+                                                            await dns.list();
 
-Product Model
+                                                            // Verify domain
+                                                            await dns.verify('dom_abc123');
 
-The SDK provides a convenient ProductModel class with getters:
+                                                            // Set default domain
+                                                            await dns.setDefault('dom_abc123');
+                                                            ```
 
-```typescript
-import { ProductModel } from 'chariow-sdk';
+                                                            WebSocket
 
-const product = await api.products.get('prd_xxx');
-const model = new ProductModel(product);
+                                                            ```typescript
+                                                            import { ChariowWebSocket } from 'chariow-sdk/websocket';
 
-console.log(model.id);
-console.log(model.name);
-console.log(model.description); // Cleaned HTML
-console.log(model.thumbnail);
-console.log(model.price); // Formatted price
-console.log(model.isPublished); // boolean
-```
+                                                            const ws = new ChariowWebSocket('your-api-key');
 
-Utilities
+                                                            // Connect
+                                                            await ws.connect();
 
-cleanHtml(html: string): string
+                                                            // Subscribe to events
+                                                            await ws.subscribeToStore();
+                                                            await ws.subscribeToProduct('prod_abc123');
 
-Clean HTML content by removing scripts, styles, and formatting.
+                                                            // Listen for events
+                                                            ws.on('new_sale', (sale) => {
+                                                              console.log(`New sale: ${sale.amount} ${sale.currency}`);
+                                                              });
 
-```typescript
-import { cleanHtml } from 'chariow-sdk';
+                                                              ws.on('product_updated', (product) => {
+                                                                console.log(`Product updated: ${product.name}`);
+                                                                });
 
-const cleaned = cleanHtml('<p>Hello <strong>World</strong></p>');
-console.log(cleaned); // "Hello World"
-```
+                                                                ws.on('notification', (notification) => {
+                                                                  console.log(`Notification: ${notification.message}`);
+                                                                  });
 
----
+                                                                  // Search products in real-time
+                                                                  const results = await ws.searchProducts({
+                                                                    term: 'awesome',
+                                                                      minPrice: 10,
+                                                                        maxPrice: 50,
+                                                                          sortBy: 'rating'
+                                                                          });
+                                                                          ```
 
-🎮 CLI Commands
+                                                                          🌐 Payment Gateway (Stripe-compatible)
 
-Interactive Mode
+                                                                          ```bash
+                                                                          # Start the gateway
+                                                                          chariow serve --port 4242
 
-```bash
-chariow
-```
+                                                                          # Generate nginx config with SSL
+                                                                          chariow serve --ssl --domain pay.myshop.com
+                                                                          ```
 
-Opens an interactive TUI with the following options:
+                                                                          Endpoints
 
-· 🔐 Login / Configure Account
-· 📦 List My Products
-· ✨ Create Product
-· 🔍 Search My Products
-· 🔎 Explore Marketplace
-· 📊 View Product Stats
-· 🛒 Manage Orders
-· 🏪 Store Analytics
-· ⚙️ Configuration
+                                                                          Method Endpoint Description
+                                                                          POST /v1/payment_intents Create payment intent
+                                                                          GET /v1/payment_intents/:id Get payment intent
+                                                                          POST /v1/payment_intents/:id/confirm Confirm payment
+                                                                          POST /v1/payment_intents/:id/cancel Cancel payment
+                                                                          POST /v1/charges Create charge
+                                                                          GET /v1/charges List charges
+                                                                          POST /v1/refunds Create refund
+                                                                          POST /v1/customers Create customer
+                                                                          GET /v1/balance Get balance
+                                                                          GET /v1/products List products
 
-Explore Marketplace
+                                                                          Example with curl
 
-```bash
-# Interactive exploration
-chariow explore
+                                                                          ```bash
+                                                                          # Create payment intent
+                                                                          curl -X POST http://localhost:4242/v1/payment_intents \
+                                                                            -H "Authorization: Bearer your-api-key" \
+                                                                              -H "Content-Type: application/json" \
+                                                                                -d '{
+                                                                                    "amount": 5000,
+                                                                                        "currency": "usd",
+                                                                                            "customer_email": "user@example.com",
+                                                                                                "items": [{"product_id": "prod_abc123", "quantity": 1}]
+                                                                                                  }'
 
-# Search products
-chariow explore --search "AI coding"
+                                                                                                  # Process charge
+                                                                                                  curl -X POST http://localhost:4242/v1/charges \
+                                                                                                    -H "Authorization: Bearer your-api-key" \
+                                                                                                      -H "Content-Type: application/json" \
+                                                                                                        -d '{
+                                                                                                            "amount": 2999,
+                                                                                                                "currency": "usd",
+                                                                                                                    "product_id": "prod_abc123",
+                                                                                                                        "customer_email": "buyer@example.com"
+                                                                                                                          }'
+                                                                                                                          ```
 
-# View top rated products
-chariow explore --top
+                                                                                                                          🧪 Testing
 
-# Browse by category
-chariow explore --category "Development"
-```
+                                                                                                                          ```bash
+                                                                                                                          # Run all tests
+                                                                                                                          npm test
 
-Product Management
+                                                                                                                          # Run unit tests
+                                                                                                                          npm run test:unit
 
-```bash
-# List products
-chariow products --list
+                                                                                                                          # Run integration tests
+                                                                                                                          npm run test:integration
 
-# Get product details
-chariow products --get prd_xxx
+                                                                                                                          # Run tests with coverage
+                                                                                                                          npm run test:coverage
 
-# Search products
-chariow products --search "phone"
+                                                                                                                          # Run tests in watch mode
+                                                                                                                          npm run test:watch
+                                                                                                                          ```
 
-# Create product (interactive)
-chariow products --create
+                                                                                                                          📊 Test Results
 
-# Delete product
-chariow products --delete prd_xxx
-```
+                                                                                                                          ```bash
+                                                                                                                          ✅ 141 tests passed
+                                                                                                                          ✅ 31 test suites
+                                                                                                                          ⏱️  3.63 seconds
+                                                                                                                          ```
 
-Configuration
+                                                                                                                          🛠️ Development
 
-```bash
-# Set API key
-chariow config --set "sk_xxxxx"
+                                                                                                                          ```bash
+                                                                                                                          # Clone repository
+                                                                                                                          git clone git@github.com:gopu-inc/chariow-sdk.git
+                                                                                                                          cd chariow-sdk
 
-# Get current API key
-chariow config --get
+                                                                                                                          # Install dependencies
+                                                                                                                          npm install
 
-# Remove configuration
-chariow config --remove
-```
+                                                                                                                          # Build
+                                                                                                                          npm run build
 
----
+                                                                                                                          # Development mode
+                                                                                                                          npm run dev
 
-🛠️ Development
+                                                                                                                          # Type check
+                                                                                                                          npm run type-check
 
-Prerequisites
+                                                                                                                          # Link locally
+                                                                                                                          npm run link:local
+                                                                                                                          ```
 
-· Node.js 18+
-· TypeScript 5+
-· npm or yarn
+                                                                                                                          📖 Examples
 
-Setup
+                                                                                                                          Check out the examples directory for complete usage examples:
 
-```bash
-# Clone the repository
-git clone https://github.com/gopu-inc/chariow-sdk.git
-cd chariow-sdk
+                                                                                                                          · Basic Product Management
+                                                                                                                          · Payment Processing
+                                                                                                                          · Webhook Setup
+                                                                                                                          · Marketplace Integration
+                                                                                                                          · WebSocket Monitoring
+                                                                                                                          · Full E-commerce Flow
 
-# Install dependencies
-npm install
+                                                                                                                          🤝 Contributing
 
-# Build the project
-npm run build
+                                                                                                                          We welcome contributions! Please see our Contributing Guide.
 
-# Run in development mode
-npm run dev
+                                                                                                                          1. Fork the repository
+                                                                                                                          2. Create your feature branch (git checkout -b feature/amazing-feature)
+                                                                                                                          3. Commit your changes (git commit -m 'Add amazing feature')
+                                                                                                                          4. Push to the branch (git push origin feature/amazing-feature)
+                                                                                                                          5. Open a Pull Request
 
-# Link globally for testing
-npm link
-```
+                                                                                                                          📝 License
 
-Project Structure
+                                                                                                                          This project is licensed under the MIT License — see the LICENSE file for details.
 
-```
-chariow-sdk/
-├── src/
-│   ├── cli/           # CLI commands and UI
-│   │   ├── commands/  # Individual commands
-│   │   ├── utils/     # CLI utilities
-│   │   └── index.ts   # CLI entry point
-│   ├── models/        # Data models
-│   ├── modules/       # API modules
-│   ├── types/         # TypeScript interfaces
-│   ├── utils/         # Helper functions
-│   ├── client.ts      # HTTP client
-│   ├── errors.ts      # Error classes
-│   ├── index.ts       # SDK entry point
-│   └── sdk.ts         # Main SDK class
-├── dist/              # Compiled output
-├── test/              # Test files
-├── package.json
-├── tsconfig.json
-└── README.md
-```
+                                                                                                                          🙏 Acknowledgments
 
-Testing
+                                                                                                                          · Built with TypeScript
+                                                                                                                          · Powered by Chariow Platform
+                                                                                                                          · CLI with Commander.js
+                                                                                                                          · TUI with Chalk + Inquirer
 
-```bash
-# Run test file
-npm run test
+                                                                                                                          📫 Contact & Support
 
-# Or with tsx directly
-tsx test2.ts
-```
+                                                                                                                          · Documentation: docs.chariow.com
+                                                                                                                          · API Reference: docs.chariow.com/api
+                                                                                                                          · Issues: GitHub Issues
+                                                                                                                          · Discord: Chariow Community
+                                                                                                                          · Twitter: @Chariow
 
----
+                                                                                                                          ---
 
-📊 TypeScript Support
+                                                                                                                          <div align="center">
 
-All APIs are fully typed. Here are the main types:
+                                                                                                                          Built with ❤️ by the Chariow Team
 
-```typescript
-interface Product {
-  id: string;
-  name: string;
-  slug: string | null;
-  description: string;
-  type: string;
-  status: string;
-  is_free: boolean;
-  quantity: number | null;
-  category: ProductCategory;
-  pictures: ProductPicture;
-  pricing: ProductPricing;
-  settings: ProductSettings;
-  rating: ProductRating;
-  sales_count: ProductSalesCount;
-  custom_cta_text: ProductCTA;
-}
+                                                                                                                          ⭐ Star us on GitHub — it helps!
 
-interface ProductPricing {
-  type: string;
-  current_price?: ProductPrice;
-  price?: ProductPrice;
-  effective?: ProductPrice;
-  sale_price?: ProductPrice;
-}
-
-interface ProductPrice {
-  amount: number;
-  currency: string;
-  formatted: string;
-}
-
-interface Pagination {
-  count: number;
-  per_page: number;
-  next_cursor: string | null;
-  has_more_pages: boolean;
-}
-```
-
----
-
-🔧 Error Handling
-
-```typescript
-import { ChariowError } from 'chariow-sdk';
-
-try {
-  const products = await api.products.list();
-} catch (error) {
-  if (error instanceof ChariowError) {
-    console.error('API Error:', error.message);
-    console.error('Status:', error.status);
-    console.error('Data:', error.data);
-  } else {
-    console.error('Unknown error:', error);
-  }
-}
-```
-
----
-
-🌟 Examples
-
-Express.js Integration
-
-```typescript
-import express from 'express';
-import { Chariow } from 'chariow-sdk';
-
-const app = express();
-const api = new Chariow(process.env.CHARIOW_API_KEY!);
-
-app.get('/api/products', async (req, res) => {
-  try {
-    const products = await api.products.list();
-    res.json(products);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.listen(3000);
-```
-
-Next.js API Route
-
-```typescript
-// pages/api/products.ts
-import { Chariow } from 'chariow-sdk';
-
-export default async function handler(req, res) {
-  const api = new Chariow(process.env.CHARIOW_API_KEY!);
-  
-  if (req.method === 'GET') {
-    const products = await api.products.list();
-    res.status(200).json(products);
-  }
-}
-```
-
-CLI Script
-
-```bash
-#!/bin/bash
-# Get product stats
-chariow products --list | grep "Published" | wc -l
-```
-
----
-
-🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (git checkout -b feature/amazing)
-3. Commit your changes (git commit -m 'Add amazing feature')
-4. Push to the branch (git push origin feature/amazing)
-5. Open a Pull Request
-
-Development Guidelines
-
-· Write TypeScript with strict mode enabled
-· Add tests for new features
-· Update documentation
-· Follow existing code style
-
----
-
-📝 Changelog
-
-v2.1.3 (Latest)
-
-· ✅ Initial SDK release
-· ✅ Products API (list, get, create, update, delete, search)
-· ✅ CLI with interactive mode
-· ✅ Explore marketplace feature
-· ✅ HTML cleaning utilities
-· ✅ Product models with getters
-· ✅ Authentication via API key
-· ✅ Browser-based login
-
-Coming Soon
-
-· ⏳ Orders API
-· ⏳ Customers API
-· ⏳ Checkout API
-· ⏳ Webhooks support
-· ⏳ Store analytics
-· ⏳ Real-time updates
-· ⏳ WebSocket support
-
----
-
-📄 License
-
-MIT © 2026 Chariow - gopu inc
-
----
-
-🔗 Links
-
-· Website
-· API Reference
-· Documentation
-· GitHub Repository
-· npm Package
-· Issue Tracker
-
----
-
-💬 Support
-
-· Documentation: soon comming
-· Discord: soon comming
-· Twitter: soon comming
-· Email: ceoseshell@gmail.com
-
----
-
-<div align="center">
-
-Built with ❤️ by the CMO Team - gopu inc
-
-⭐ Star us on GitHub if you find this useful!
-
-</div>
-
+                                                                                                                          </div>
